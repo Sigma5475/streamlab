@@ -7,16 +7,33 @@ const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
 
+// Ajout du bouton retour dans le lecteur
+let backBtn;
+function ensureBackBtn() {
+  if (!backBtn) {
+    backBtn = document.createElement('button');
+    backBtn.className = 'btn back-btn';
+    backBtn.textContent = 'Retour au menu';
+    backBtn.onclick = () => {
+      playerModal.classList.remove('open');
+      player.pause();
+      player.src = '';
+      window.location.hash = '';
+      renderPage();
+    };
+    playerModal.querySelector('.modal-head').appendChild(backBtn);
+  }
+}
+
 // Variable globale pour stocker le catalogue
 let catalog = { series: [] };
 
-// Utilitaire pour changer la page (SPA style)
+// Utilitaire SPA
 function navigateTo(hash) {
   window.location.hash = hash;
   renderPage();
 }
 
-// Fonction principale pour router
 function renderPage() {
   const hash = window.location.hash;
   if (hash.startsWith('#serie=')) {
@@ -27,7 +44,6 @@ function renderPage() {
   }
 }
 
-// Affichage du catalogue de séries
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
 
@@ -41,7 +57,6 @@ function renderCatalog(data) {
     card.className = 'card serie-card';
     card.style.cursor = 'pointer';
 
-    // Image de la série
     if (series.image) {
       const img = document.createElement('img');
       img.src = series.image;
@@ -50,13 +65,11 @@ function renderCatalog(data) {
       card.appendChild(img);
     }
 
-    // Titre
     const title = document.createElement('div');
     title.className = 'title';
     title.textContent = series.title;
     card.appendChild(title);
 
-    // Description courte si dispo
     if (series.description) {
       const desc = document.createElement('div');
       desc.className = 'meta';
@@ -64,7 +77,6 @@ function renderCatalog(data) {
       card.appendChild(desc);
     }
 
-    // Progression (si déjà commencée)
     const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
     if (progress.episode) {
       const progDiv = document.createElement('div');
@@ -73,23 +85,28 @@ function renderCatalog(data) {
       card.appendChild(progDiv);
     }
 
-    // Clic : aller sur la page série
     card.onclick = () => navigateTo('#serie=' + series.id);
 
     seriesContainer.appendChild(card);
   });
 }
 
-// Affichage page d'une série
 function renderSeriesPage(seriesId) {
   const series = catalog.series.find(s => s.id === seriesId);
   if (!series) {
     seriesContainer.innerHTML = "<div>Série introuvable.</div>";
     return;
   }
-
-  // Progression
   const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
+
+  // Bouton retour au menu
+  const backBtnSerie = document.createElement('button');
+  backBtnSerie.className = 'btn back-btn';
+  backBtnSerie.textContent = 'Retour au menu';
+  backBtnSerie.onclick = () => {
+    window.location.hash = '';
+    renderPage();
+  };
 
   let html = `
     <div class="serie-info">
@@ -100,21 +117,21 @@ function renderSeriesPage(seriesId) {
         ${progress.episode ? 'Continuer la lecture' : 'Commencer la série'}
       </button>
       <h3>Choisir un épisode :</h3>
-      <ul style="list-style:none;padding:0">
+      <div class="episode-list">
   `;
   series.seasons.forEach(season => {
-    html += `<li style="margin-bottom:6px;font-weight:bold;color:var(--muted)">Saison ${season.season}</li>`;
     season.episodes.forEach(ep => {
-      html += `<li style="margin-left:12px">
-        Episode ${ep.episode} - ${ep.title}
+      html += `<div class="episode-card">
+        <span>Saison ${season.season}, Épisode ${ep.episode} - ${ep.title}</span>
         <button class="btn" onclick="startEpisode('${series.id}',${season.season},${ep.episode})">Lecture</button>
-      </li>`;
+      </div>`;
     });
   });
-  html += `</ul></div>`;
-  seriesContainer.innerHTML = html;
+  html += `</div></div>`;
+  seriesContainer.innerHTML = '';
+  seriesContainer.appendChild(backBtnSerie);
+  seriesContainer.insertAdjacentHTML('beforeend', html);
 
-  // Bouton continuer/commencer
   document.getElementById('btnContinue').onclick = () => {
     if (progress.episode) {
       startEpisode(series.id, progress.season, progress.episode, progress.time);
@@ -126,7 +143,6 @@ function renderSeriesPage(seriesId) {
   };
 }
 
-// Fonction pour démarrer un épisode
 function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   const series = catalog.series.find(s => s.id === seriesId);
   const season = series.seasons.find(se => se.season === seasonNumber);
@@ -134,20 +150,17 @@ function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
 
   openPlayer(series, season, episode, startTime);
 
-  // Sauvegarde progression
   localStorage.setItem('progress_' + seriesId, JSON.stringify({
     season: seasonNumber,
     episode: episodeNumber,
     time: startTime
   }));
 
-  // Enregistre l'ID de la série en cours pour l'autoplay
   player.setAttribute('data-series', seriesId);
   player.setAttribute('data-season', seasonNumber);
   player.setAttribute('data-episode', episodeNumber);
 }
 
-// Lecture vidéo + gestion du prochain épisode
 function openPlayer(series, season, episode, startTime = 0) {
   modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
   player.src = episode.src;
@@ -155,7 +168,8 @@ function openPlayer(series, season, episode, startTime = 0) {
   player.currentTime = startTime || 0;
   player.play();
 
-  // Gestion progression
+  ensureBackBtn();
+
   player.ontimeupdate = () => {
     localStorage.setItem('progress_' + series.id, JSON.stringify({
       season: season.season,
@@ -164,31 +178,26 @@ function openPlayer(series, season, episode, startTime = 0) {
     }));
   };
 
-  // Lecture automatique du prochain épisode
   player.onended = () => {
     const next = findNextEpisode(series, season.season, episode.episode);
     if (next) {
       setTimeout(() => startEpisode(series.id, next.season, next.episode), 800);
     } else {
-      // Fin de la série !
       playerModal.classList.remove('open');
       alert("Bravo, vous avez terminé la série !");
     }
   };
 }
 
-// Trouve l'épisode suivant
 function findNextEpisode(series, seasonNumber, episodeNumber) {
   const season = series.seasons.find(se => se.season === seasonNumber);
   const epIndex = season.episodes.findIndex(e => e.episode === episodeNumber);
-  // Prochain épisode dans la même saison
   if (epIndex < season.episodes.length - 1) {
     return {
       season: seasonNumber,
       episode: season.episodes[epIndex + 1].episode
     };
   }
-  // Première épisode de la saison suivante
   const seasonIdx = series.seasons.findIndex(se => se.season === seasonNumber);
   if (seasonIdx < series.seasons.length - 1) {
     const nextSeason = series.seasons[seasonIdx + 1];
@@ -200,14 +209,12 @@ function findNextEpisode(series, seasonNumber, episodeNumber) {
   return null;
 }
 
-// Fermer le lecteur
 closeBtn.onclick = () => {
   player.pause();
   playerModal.classList.remove('open');
   player.src = '';
 };
 
-// Recherche dans le catalogue
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.toLowerCase();
   if (!q) {
@@ -224,7 +231,6 @@ searchInput.addEventListener('input', () => {
   renderCatalog(filtered);
 });
 
-// Charge le catalogue
 function loadCatalog() {
   fetch('/catalog.json')
     .then(res => res.json())
@@ -238,11 +244,8 @@ function loadCatalog() {
     });
 }
 
-// Gère le routage SPA
 window.addEventListener('hashchange', renderPage);
 
-// Initialisation
 loadCatalog();
 
-// Fonction globale pour lecture bouton épisode (nécessaire pour inline onclick)
 window.startEpisode = startEpisode;
