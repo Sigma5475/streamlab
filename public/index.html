@@ -1,1 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>StreamLab — Catalogue</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+<div class="brand">StreamLab</div>
+<div class="controls">
+<input id="search" class="search" placeholder="Rechercher une série, épisode..." />
+<button id="watchlistBtn" class="link">Watchlist</button>
+</div>
+</header>
 
+
+<main class="container">
+<h1 id="mainTitle">Catalogue</h1>
+<div id="seriesContainer"></div>
+</main>
+
+
+<div class="modal" id="playerModal" role="dialog" aria-modal="true">
+<div class="modal-content">
+<div class="modal-head">
+<div id="modalTitle">Lecture</div>
+<div>
+<button class="close" id="closeBtn">✕</button>
+</div>
+</div>
+<video id="player" controls controlsList="nodownload"></video>
+</div>
+</div>
+
+
+<script src="app.js"></script>
+</body>
+</html>
