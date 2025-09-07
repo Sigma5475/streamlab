@@ -1,20 +1,17 @@
 {
-"series": [
-{
-"id": "flash",
-"title": "Flash (Test)",
-"description": "Série TEST — métadonnées reproduites (exemple). Remplacez les fichiers vidéo par vos propres fichiers légaux.",
-"seasons": [
-{
-"season": 1,
-"episodes": [
-{ "episode": 1, "title": "Pilot (Test)", "src": "https://cinetacos.xyz/series/Flash/S01/Flash-S01-E01.mp4", "duration": null },
-{ "episode": 2, "title": "Fast Friends (Test)", "src": "https://cinetacos.xyz/series/Flash/S01/Flash-S01-E02.mp4", "duration": null }
-]
-},
-{
-"season": 2,
-"episodes": [
-{ "episode": 1, "title": "The Return (Test)", "src": "https://cinetacos.xyz/series/Flash/S02/Flash-S02-E01.mp4", "duration": null }
-]
+  "series": [
+    {
+      "id": "flash",
+      "title": "Flash (Test)",
+      "description": "Série test",
+      "seasons": [
+        {
+          "season": 1,
+          "episodes": [
+            { "episode": 1, "title": "Épisode 1", "src": "https://cinetacos.xyz/series/Flash/S01/Flash-S01-E01.mp4" }
+          ]
+        }
+      ]
+    }
+  ]
 }
