@@ -1,5 +1,3 @@
-series.seasons.forEach(season => {
-  season.episodes.forEach(ep => {
     const card = document.createElement('div');
     card.className = 'card';
 
@@ -25,7 +23,6 @@ series.seasons.forEach(season => {
 
     list.appendChild(card);
   });
-});
 
   modal.appendChild(title);
   modal.appendChild(close);
@@ -61,4 +58,3 @@ searchInput.addEventListener('input', () => {
 });
 
 loadCatalog();
-
