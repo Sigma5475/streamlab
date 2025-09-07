@@ -92,7 +92,7 @@ searchInput.addEventListener('input', () => {
 
 // Fonction de chargement du catalogue depuis l'API
 function loadCatalog() {
-  fetch('/api/catalog')
+  fetch('/catalog.json')
     .then(res => res.json())
     .then(data => {
       catalog = data;
