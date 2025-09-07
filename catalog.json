@@ -2,13 +2,18 @@
   "series": [
     {
       "id": "flash",
-      "title": "Flash (Test)",
-      "description": "Série test",
+      "title": "The Flash",
+      "description": "Barry Allen devient le super-héros le plus rapide du monde.",
+      "poster": "https://upload.wikimedia.org/wikipedia/en/2/28/The_Flash_season_1.jpg",
       "seasons": [
         {
           "season": 1,
           "episodes": [
-            { "episode": 1, "title": "Épisode 1", "src": "https://cinetacos.xyz/series/Flash/S01/Flash-S01-E01.mp4" }
+            {
+              "episode": 1,
+              "title": "Épisode 1",
+              "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+            }
           ]
         }
       ]
