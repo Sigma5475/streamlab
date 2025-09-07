@@ -1,3 +1,5 @@
+series.seasons.forEach(season => {
+  season.episodes.forEach(ep => {
     const card = document.createElement('div');
     card.className = 'card';
 
@@ -23,6 +25,7 @@
 
     list.appendChild(card);
   });
+});
 
   modal.appendChild(title);
   modal.appendChild(close);
