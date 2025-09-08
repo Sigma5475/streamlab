@@ -6,7 +6,6 @@ const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
 
-// Gestion du header (affiché uniquement sur la page catalogue)
 const mainHeader = document.getElementById('mainHeader');
 
 let backBtn;
@@ -39,7 +38,6 @@ function navigateTo(hash) {
 
 function renderPage() {
   const hash = window.location.hash;
-  // Affiche ou cache le header selon la page
   if (mainHeader) {
     if (hash.startsWith('#serie=')) {
       mainHeader.style.display = 'none';
@@ -193,10 +191,9 @@ function renderSeriesPage(seriesId) {
     }
   };
 
-  // Rendu dynamique des épisodes (lecture + bouton reprendre si applicable)
+  // Rendu dynamique des épisodes
   const episodeList = document.getElementById('episodeList');
   series.seasons.forEach(season => {
-    // Saison header
     const seasonHeader = document.createElement('div');
     seasonHeader.className = 'meta';
     seasonHeader.style = "font-weight:bold;color:var(--muted);margin-top:8px;";
@@ -213,7 +210,7 @@ function renderSeriesPage(seriesId) {
 
       const btnGroup = document.createElement('div');
 
-      // Bouton Lecture normal
+      // Bouton Lecture
       const lectureBtn = document.createElement('button');
       lectureBtn.className = 'btn';
       lectureBtn.textContent = 'Lecture';
@@ -236,7 +233,7 @@ function renderSeriesPage(seriesId) {
   });
 }
 
-// Sauvegarde la progression pour l'épisode courant
+// Sauvegarde progression épisode courant
 function saveProgress(isEnd = false) {
   const seriesId = player.getAttribute('data-series');
   const season = Number(player.getAttribute('data-season'));
@@ -252,7 +249,7 @@ function saveProgress(isEnd = false) {
   }
 }
 
-// Supprime la progression si tu changes d'épisode (pour n'avoir qu'une progression à la fois)
+// Supprime progression si nouvel épisode
 function clearProgress(seriesId, seasonNumber, episodeNumber) {
   const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
   if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
@@ -280,7 +277,7 @@ function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   player.setAttribute('data-episode', episodeNumber);
 }
 
-// Lecture vidéo + gestion progression + passage au prochain épisode
+// Lecture vidéo série
 function openPlayer(series, season, episode, startTime = 0) {
   modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
   player.src = episode.src;
@@ -353,7 +350,7 @@ searchInput.addEventListener('input', () => {
     renderCatalog(catalog);
     return;
   }
-  // Recherche améliorée sur séries et films
+  // Recherche sur séries et films
   const filtered = {
     series: (catalog.series || []).filter(s =>
       s.title.toLowerCase().includes(q) ||
