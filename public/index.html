@@ -2,25 +2,34 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>StreamLab Catalogue</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>StreamLab - Séries & Films</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Barre du haut et recherche -->
   <header id="mainHeader">
-    <h1>Catalogue Séries & Films</h1>
-    <input id="search" type="text" placeholder="Rechercher une série ou un film...">
+    <div class="brand">StreamLab</div>
+    <div class="controls">
+      <input id="search" class="search" type="search" placeholder="Rechercher une série...">
+    </div>
   </header>
-  <main>
+  <main class="container">
     <div id="seriesContainer"></div>
   </main>
 
-  <div id="playerModal" class="modal">
-    <div class="modal-head">
-      <span id="modalTitle"></span>
-      <button id="closeBtn" class="close">&times;</button>
+  <!-- Modal lecteur vidéo -->
+  <div class="modal" id="playerModal" tabindex="-1">
+    <div class="modal-content">
+      <div class="modal-head">
+        <span id="modalTitle"></span>
+        <button id="closeBtn" class="close" title="Fermer">&#10005;</button>
+        <!-- Le bouton "Retour au menu" sera ajouté ici par JS -->
+      </div>
+      <video id="player" controls preload="metadata" poster="" style="background:#222;">
+        Désolé, votre navigateur ne supporte pas la vidéo HTML5.
+      </video>
     </div>
-    <video id="player" controls style="width:100%;max-width:800px;margin:20px auto;display:block;"></video>
   </div>
 
   <script src="app.js"></script>
