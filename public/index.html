@@ -7,13 +7,13 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <div class="brand">StreamLab</div>
-    <div class="controls">
-      <input id="search" class="search" type="search" placeholder="Rechercher une série...">
-    </div>
-  </header>
+  <!-- Barre de recherche seule, sans header/barre supérieure -->
+  <div class="controls" style="margin: 32px auto 0 auto; max-width: 560px; text-align: center;">
+    <input id="search" class="search" type="search" placeholder="Rechercher une série...">
+  </div>
+
   <main class="container">
+    <!-- Catalogue ou page série s'affichent ici -->
     <div id="seriesContainer"></div>
   </main>
 
@@ -23,7 +23,7 @@
       <div class="modal-head">
         <span id="modalTitle"></span>
         <button id="closeBtn" class="close" title="Fermer">&#10005;</button>
-        <!-- Le bouton "Retour au menu" sera ajouté ici par JS -->
+        <!-- Le bouton "Retour au menu" sera ajouté par JS -->
       </div>
       <video id="player" controls preload="metadata" poster="" style="background:#222;">
         Désolé, votre navigateur ne supporte pas la vidéo HTML5.
