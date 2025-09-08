@@ -27,10 +27,10 @@ function ensureBackBtn() {
   }
 }
 
-// Le catalogue contient séries ET films !
+// Catalogue séries + films
 let catalog = { series: [], movies: [] };
 
-// SPA navigation
+// Navigation SPA
 function navigateTo(hash) {
   window.location.hash = hash;
   renderPage();
@@ -53,7 +53,7 @@ function renderPage() {
   }
 }
 
-// Affiche la liste des séries ET des films
+// Affiche le catalogue séries + films
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
 
@@ -65,7 +65,7 @@ function renderCatalog(data) {
     return;
   }
 
-  // Les séries
+  // Séries
   if (hasSeries) {
     data.series.forEach(series => {
       const card = document.createElement('div');
@@ -106,7 +106,7 @@ function renderCatalog(data) {
     });
   }
 
-  // Les films
+  // FILMS
   if (hasMovies) {
     data.movies.forEach(movie => {
       const card = document.createElement('div');
@@ -148,7 +148,7 @@ function renderCatalog(data) {
   }
 }
 
-// Affiche la page d'une série (titres, boutons, progression)
+// Affiche la page d'une série
 function renderSeriesPage(seriesId) {
   const series = catalog.series.find(s => s.id === seriesId);
   if (!series) {
@@ -191,7 +191,7 @@ function renderSeriesPage(seriesId) {
     }
   };
 
-  // Rendu dynamique des épisodes
+  // Liste des épisodes
   const episodeList = document.getElementById('episodeList');
   series.seasons.forEach(season => {
     const seasonHeader = document.createElement('div');
@@ -249,7 +249,6 @@ function saveProgress(isEnd = false) {
   }
 }
 
-// Supprime progression si nouvel épisode
 function clearProgress(seriesId, seasonNumber, episodeNumber) {
   const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
   if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
@@ -257,7 +256,7 @@ function clearProgress(seriesId, seasonNumber, episodeNumber) {
   }
 }
 
-// Démarre un épisode (lecture à la minute exacte)
+// Démarre un épisode
 function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   clearProgress(seriesId, seasonNumber, episodeNumber);
   const series = catalog.series.find(s => s.id === seriesId);
@@ -277,7 +276,6 @@ function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   player.setAttribute('data-episode', episodeNumber);
 }
 
-// Lecture vidéo série
 function openPlayer(series, season, episode, startTime = 0) {
   modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
   player.src = episode.src;
@@ -350,7 +348,6 @@ searchInput.addEventListener('input', () => {
     renderCatalog(catalog);
     return;
   }
-  // Recherche sur séries et films
   const filtered = {
     series: (catalog.series || []).filter(s =>
       s.title.toLowerCase().includes(q) ||
