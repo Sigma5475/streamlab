@@ -1,3 +1,4 @@
+// Sélecteurs principaux
 const seriesContainer = document.getElementById('seriesContainer');
 const searchInput = document.getElementById('search');
 const modalTitle = document.getElementById('modalTitle');
@@ -26,6 +27,7 @@ function ensureBackBtn() {
 
 let catalog = { series: [] };
 
+// SPA navigation
 function navigateTo(hash) {
   window.location.hash = hash;
   renderPage();
@@ -41,6 +43,7 @@ function renderPage() {
   }
 }
 
+// Affiche la liste des séries
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
   if (!data.series || data.series.length === 0) {
@@ -86,6 +89,7 @@ function renderCatalog(data) {
   });
 }
 
+// Affiche la page d'une série (titres, boutons, progression)
 function renderSeriesPage(seriesId) {
   const series = catalog.series.find(s => s.id === seriesId);
   if (!series) {
@@ -112,25 +116,8 @@ function renderSeriesPage(seriesId) {
         ${progress.episode ? 'Continuer la lecture' : 'Commencer la série'}
       </button>
       <h3>Choisir un épisode :</h3>
-      <div class="episode-list">
-  `;
-  series.seasons.forEach(season => {
-    html += `<div class="meta" style="font-weight:bold;color:var(--muted);margin-top:8px;">Saison ${season.season}</div>`;
-    season.episodes.forEach(ep => {
-      const isCurrent = progress.episode === ep.episode && progress.season === season.season;
-      html += `<div class="episode-card">
-        <span>S${season.season}E${ep.episode} - ${ep.title}</span>
-        <div>
-          <button class="btn" onclick="startEpisode('${series.id}',${season.season},${ep.episode},0)">Lecture</button>
-          ${isCurrent && progress.time ?
-            `<button class="btn" style="margin-left:10px;background:#444;color:#fff;" onclick="startEpisode('${series.id}',${season.season},${ep.episode},${progress.time})">
-              Reprendre à ${Math.floor(progress.time/60)} min
-            </button>` : ''}
-        </div>
-      </div>`;
-    });
-  });
-  html += `</div></div>`;
+      <div class="episode-list" id="episodeList"></div>
+    </div>`;
   seriesContainer.innerHTML = '';
   seriesContainer.appendChild(backBtnSerie);
   seriesContainer.insertAdjacentHTML('beforeend', html);
@@ -144,6 +131,48 @@ function renderSeriesPage(seriesId) {
       startEpisode(series.id, firstSeason.season, firstEpisode.episode, 0);
     }
   };
+
+  // Rendu dynamique des épisodes (lecture + bouton reprendre si applicable)
+  const episodeList = document.getElementById('episodeList');
+  series.seasons.forEach(season => {
+    // Saison header
+    const seasonHeader = document.createElement('div');
+    seasonHeader.className = 'meta';
+    seasonHeader.style = "font-weight:bold;color:var(--muted);margin-top:8px;";
+    seasonHeader.textContent = `Saison ${season.season}`;
+    episodeList.appendChild(seasonHeader);
+
+    season.episodes.forEach(ep => {
+      const episodeCard = document.createElement('div');
+      episodeCard.className = 'episode-card';
+
+      const infoSpan = document.createElement('span');
+      infoSpan.textContent = `S${season.season}E${ep.episode} - ${ep.title}`;
+      episodeCard.appendChild(infoSpan);
+
+      const btnGroup = document.createElement('div');
+
+      // Bouton Lecture normal
+      const lectureBtn = document.createElement('button');
+      lectureBtn.className = 'btn';
+      lectureBtn.textContent = 'Lecture';
+      lectureBtn.onclick = () => startEpisode(series.id, season.season, ep.episode, 0);
+      btnGroup.appendChild(lectureBtn);
+
+      // Bouton Reprendre si progression sur cet épisode
+      if (progress.episode === ep.episode && progress.season === season.season && progress.time > 0) {
+        const resumeBtn = document.createElement('button');
+        resumeBtn.className = 'btn';
+        resumeBtn.style = "margin-left:10px;background:#444;color:#fff;";
+        resumeBtn.textContent = `Reprendre à ${Math.floor(progress.time/60)} min`;
+        resumeBtn.onclick = () => startEpisode(series.id, season.season, ep.episode, progress.time);
+        btnGroup.appendChild(resumeBtn);
+      }
+
+      episodeCard.appendChild(btnGroup);
+      episodeList.appendChild(episodeCard);
+    });
+  });
 }
 
 // Sauvegarde la progression pour l'épisode courant
@@ -152,10 +181,7 @@ function saveProgress(isEnd = false) {
   const season = Number(player.getAttribute('data-season'));
   const episode = Number(player.getAttribute('data-episode'));
   let time = player.currentTime;
-  // Si épisode terminé, remet à zéro
-  if (isEnd) {
-    time = 0;
-  }
+  if (isEnd) time = 0;
   if (seriesId && season && episode) {
     localStorage.setItem('progress_' + seriesId, JSON.stringify({
       season,
@@ -165,7 +191,7 @@ function saveProgress(isEnd = false) {
   }
 }
 
-// Supprime la progression de l'ancien épisode si tu passes au suivant
+// Supprime la progression si tu changes d'épisode (pour n'avoir qu'une progression à la fois)
 function clearProgress(seriesId, seasonNumber, episodeNumber) {
   const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
   if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
@@ -173,9 +199,9 @@ function clearProgress(seriesId, seasonNumber, episodeNumber) {
   }
 }
 
-// Démarrer un épisode
+// Démarre un épisode (lecture à la minute exacte)
 function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
-  clearProgress(seriesId, seasonNumber, episodeNumber); // Efface la progression si épisode/saison changés
+  clearProgress(seriesId, seasonNumber, episodeNumber);
   const series = catalog.series.find(s => s.id === seriesId);
   const season = series.seasons.find(se => se.season === seasonNumber);
   const episode = season.episodes.find(e => e.episode === episodeNumber);
@@ -193,6 +219,7 @@ function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   player.setAttribute('data-episode', episodeNumber);
 }
 
+// Lecture vidéo + gestion progression + passage au prochain épisode
 function openPlayer(series, season, episode, startTime = 0) {
   modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
   player.src = episode.src;
