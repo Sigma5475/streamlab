@@ -6,6 +6,9 @@ const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
 
+// Gestion du header (affiché uniquement sur la page catalogue)
+const mainHeader = document.getElementById('mainHeader');
+
 let backBtn;
 function ensureBackBtn() {
   if (!backBtn) {
@@ -35,6 +38,14 @@ function navigateTo(hash) {
 
 function renderPage() {
   const hash = window.location.hash;
+  // Affiche ou cache le header selon la page
+  if (mainHeader) {
+    if (hash.startsWith('#serie=')) {
+      mainHeader.style.display = 'none';
+    } else {
+      mainHeader.style.display = '';
+    }
+  }
   if (hash.startsWith('#serie=')) {
     const serieId = hash.replace('#serie=', '');
     renderSeriesPage(serieId);
