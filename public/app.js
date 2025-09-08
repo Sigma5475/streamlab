@@ -5,8 +5,6 @@ const modalTitle = document.getElementById('modalTitle');
 const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
-
-// Gestion du header (affiché uniquement sur la page catalogue)
 const mainHeader = document.getElementById('mainHeader');
 
 let backBtn;
@@ -28,7 +26,7 @@ function ensureBackBtn() {
   }
 }
 
-let catalog = { series: [] };
+let catalog = { series: [], movies: [] };
 
 // SPA navigation
 function navigateTo(hash) {
@@ -36,71 +34,99 @@ function navigateTo(hash) {
   renderPage();
 }
 
-function renderPage() {
-  const hash = window.location.hash;
-  // Affiche ou cache le header selon la page
-  if (mainHeader) {
-    if (hash.startsWith('#serie=')) {
-      mainHeader.style.display = 'none';
-    } else {
-      mainHeader.style.display = '';
-    }
-  }
-  if (hash.startsWith('#serie=')) {
-    const serieId = hash.replace('#serie=', '');
-    renderSeriesPage(serieId);
-  } else {
-    renderCatalog(catalog);
-  }
-}
-
-// Affiche la liste des séries
+// Affiche catalogue séries + films
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
-  if (!data.series || data.series.length === 0) {
-    seriesContainer.innerHTML = '<div>Aucune série trouvée.</div>';
-    return;
+
+  // Séries
+  if (data.series && data.series.length > 0) {
+    data.series.forEach(series => {
+      const card = document.createElement('div');
+      card.className = 'card serie-card';
+      card.style.cursor = 'pointer';
+
+      if (series.image) {
+        const img = document.createElement('img');
+        img.src = series.image;
+        img.alt = series.title;
+        img.style = "width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px";
+        card.appendChild(img);
+      }
+
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = series.title;
+      card.appendChild(title);
+
+      if (series.description) {
+        const desc = document.createElement('div');
+        desc.className = 'meta';
+        desc.textContent = series.description.slice(0, 80) + (series.description.length > 80 ? '...' : '');
+        card.appendChild(desc);
+      }
+
+      const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
+      if (progress.episode) {
+        const progDiv = document.createElement('div');
+        progDiv.className = 'meta';
+        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} (${progress.time ? Math.floor(progress.time / 60) + ' min' : ''})`;
+        card.appendChild(progDiv);
+      }
+
+      card.onclick = () => navigateTo('#serie=' + series.id);
+
+      seriesContainer.appendChild(card);
+    });
   }
-  data.series.forEach(series => {
-    const card = document.createElement('div');
-    card.className = 'card serie-card';
-    card.style.cursor = 'pointer';
 
-    if (series.image) {
-      const img = document.createElement('img');
-      img.src = series.image;
-      img.alt = series.title;
-      img.style = "width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px";
-      card.appendChild(img);
-    }
+  // Films
+  if (data.movies && data.movies.length > 0) {
+    data.movies.forEach(movie => {
+      const card = document.createElement('div');
+      card.className = 'card serie-card';
+      card.style.cursor = 'pointer';
 
-    const title = document.createElement('div');
-    title.className = 'title';
-    title.textContent = series.title;
-    card.appendChild(title);
+      if (movie.image) {
+        const img = document.createElement('img');
+        img.src = movie.image;
+        img.alt = movie.title;
+        img.style = "width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px";
+        card.appendChild(img);
+      }
 
-    if (series.description) {
-      const desc = document.createElement('div');
-      desc.className = 'meta';
-      desc.textContent = series.description.slice(0, 80) + (series.description.length > 80 ? '...' : '');
-      card.appendChild(desc);
-    }
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = movie.title;
+      card.appendChild(title);
 
-    const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
-    if (progress.episode) {
-      const progDiv = document.createElement('div');
-      progDiv.className = 'meta';
-      progDiv.textContent = `En cours : S${progress.season}E${progress.episode} (${progress.time ? Math.floor(progress.time / 60) + ' min' : ''})`;
-      card.appendChild(progDiv);
-    }
+      if (movie.description) {
+        const desc = document.createElement('div');
+        desc.className = 'meta';
+        desc.textContent = movie.description.slice(0, 80) + (movie.description.length > 80 ? '...' : '');
+        card.appendChild(desc);
+      }
 
-    card.onclick = () => navigateTo('#serie=' + series.id);
+      // Bouton Lecture directe
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = "Lecture";
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        openMoviePlayer(movie);
+      };
+      card.appendChild(btn);
 
-    seriesContainer.appendChild(card);
-  });
+      seriesContainer.appendChild(card);
+    });
+  }
+
+  // Aucun résultat
+  if ((!data.series || data.series.length === 0) && (!data.movies || data.movies.length === 0)) {
+    seriesContainer.innerHTML = '<div>Aucune série ou film trouvé.</div>';
+  }
 }
 
-// Affiche la page d'une série (titres, boutons, progression)
+// Page d'une série (titres, boutons, progression)
 function renderSeriesPage(seriesId) {
   const series = catalog.series.find(s => s.id === seriesId);
   if (!series) {
@@ -143,10 +169,9 @@ function renderSeriesPage(seriesId) {
     }
   };
 
-  // Rendu dynamique des épisodes (lecture + bouton reprendre si applicable)
+  // Rendu dynamique des épisodes
   const episodeList = document.getElementById('episodeList');
   series.seasons.forEach(season => {
-    // Saison header
     const seasonHeader = document.createElement('div');
     seasonHeader.className = 'meta';
     seasonHeader.style = "font-weight:bold;color:var(--muted);margin-top:8px;";
@@ -163,7 +188,7 @@ function renderSeriesPage(seriesId) {
 
       const btnGroup = document.createElement('div');
 
-      // Bouton Lecture normal
+      // Bouton Lecture
       const lectureBtn = document.createElement('button');
       lectureBtn.className = 'btn';
       lectureBtn.textContent = 'Lecture';
@@ -186,7 +211,7 @@ function renderSeriesPage(seriesId) {
   });
 }
 
-// Sauvegarde la progression pour l'épisode courant
+// Sauvegarde progression épisode courant
 function saveProgress(isEnd = false) {
   const seriesId = player.getAttribute('data-series');
   const season = Number(player.getAttribute('data-season'));
@@ -202,7 +227,7 @@ function saveProgress(isEnd = false) {
   }
 }
 
-// Supprime la progression si tu changes d'épisode (pour n'avoir qu'une progression à la fois)
+// Supprime progression si nouvel épisode
 function clearProgress(seriesId, seasonNumber, episodeNumber) {
   const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
   if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
@@ -230,7 +255,7 @@ function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
   player.setAttribute('data-episode', episodeNumber);
 }
 
-// Lecture vidéo + gestion progression + passage au prochain épisode
+// Lecture vidéo série
 function openPlayer(series, season, episode, startTime = 0) {
   modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
   player.src = episode.src;
@@ -287,17 +312,31 @@ closeBtn.onclick = () => {
   player.src = '';
 };
 
+// Films : lecture directe
+function openMoviePlayer(movie) {
+  modalTitle.textContent = movie.title;
+  player.src = movie.src;
+  playerModal.classList.add('open');
+  player.currentTime = 0;
+  player.play();
+}
+
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.toLowerCase();
   if (!q) {
     renderCatalog(catalog);
     return;
   }
+  // Recherche sur séries ET films
   const filtered = {
-    series: catalog.series.filter(s =>
+    series: (catalog.series || []).filter(s =>
       s.title.toLowerCase().includes(q) ||
       (s.description && s.description.toLowerCase().includes(q)) ||
       s.seasons.some(se => se.episodes.some(ep => ep.title.toLowerCase().includes(q)))
+    ),
+    movies: (catalog.movies || []).filter(m =>
+      m.title.toLowerCase().includes(q) ||
+      (m.description && m.description.toLowerCase().includes(q))
     )
   };
   renderCatalog(filtered);
@@ -317,6 +356,23 @@ function loadCatalog() {
 }
 
 window.addEventListener('hashchange', renderPage);
+
+function renderPage() {
+  const hash = window.location.hash;
+  if (mainHeader) {
+    if (hash.startsWith('#serie=')) {
+      mainHeader.style.display = 'none';
+    } else {
+      mainHeader.style.display = '';
+    }
+  }
+  if (hash.startsWith('#serie=')) {
+    const serieId = hash.replace('#serie=', '');
+    renderSeriesPage(serieId);
+  } else {
+    renderCatalog(catalog);
+  }
+}
 
 loadCatalog();
 
