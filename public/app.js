@@ -1,4 +1,3 @@
-// Sélecteurs DOM
 const seriesContainer = document.getElementById('seriesContainer');
 const searchInput = document.getElementById('search');
 const modalTitle = document.getElementById('modalTitle');
@@ -6,7 +5,6 @@ const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
 
-// Bouton retour dans modal
 let backBtn;
 function ensureBackBtn() {
   if (!backBtn) {
@@ -26,16 +24,13 @@ function ensureBackBtn() {
   }
 }
 
-// Variable globale pour stocker le catalogue
 let catalog = { series: [] };
 
-// Navigation SPA
 function navigateTo(hash) {
   window.location.hash = hash;
   renderPage();
 }
 
-// Routing principal
 function renderPage() {
   const hash = window.location.hash;
   if (hash.startsWith('#serie=')) {
@@ -46,7 +41,6 @@ function renderPage() {
   }
 }
 
-// Affichage du catalogue
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
   if (!data.series || data.series.length === 0) {
@@ -58,7 +52,6 @@ function renderCatalog(data) {
     card.className = 'card serie-card';
     card.style.cursor = 'pointer';
 
-    // Image de la série
     if (series.image) {
       const img = document.createElement('img');
       img.src = series.image;
@@ -67,13 +60,11 @@ function renderCatalog(data) {
       card.appendChild(img);
     }
 
-    // Titre
     const title = document.createElement('div');
     title.className = 'title';
     title.textContent = series.title;
     card.appendChild(title);
 
-    // Description courte
     if (series.description) {
       const desc = document.createElement('div');
       desc.className = 'meta';
@@ -81,7 +72,6 @@ function renderCatalog(data) {
       card.appendChild(desc);
     }
 
-    // Progression (si déjà commencée)
     const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
     if (progress.episode) {
       const progDiv = document.createElement('div');
@@ -90,14 +80,12 @@ function renderCatalog(data) {
       card.appendChild(progDiv);
     }
 
-    // Clic : aller sur la page série
     card.onclick = () => navigateTo('#serie=' + series.id);
 
     seriesContainer.appendChild(card);
   });
 }
 
-// Affichage page série
 function renderSeriesPage(seriesId) {
   const series = catalog.series.find(s => s.id === seriesId);
   if (!series) {
@@ -132,9 +120,13 @@ function renderSeriesPage(seriesId) {
       const isCurrent = progress.episode === ep.episode && progress.season === season.season;
       html += `<div class="episode-card">
         <span>S${season.season}E${ep.episode} - ${ep.title}</span>
-        <button class="btn" onclick="startEpisode('${series.id}',${season.season},${ep.episode},${isCurrent ? (progress.time||0) : 0})">
-          ${isCurrent && progress.time ? `Reprendre à ${Math.floor(progress.time/60)} min` : "Lecture"}
-        </button>
+        <div>
+          <button class="btn" onclick="startEpisode('${series.id}',${season.season},${ep.episode},0)">Lecture</button>
+          ${isCurrent && progress.time ?
+            `<button class="btn" style="margin-left:10px;background:#444;color:#fff;" onclick="startEpisode('${series.id}',${season.season},${ep.episode},${progress.time})">
+              Reprendre à ${Math.floor(progress.time/60)} min
+            </button>` : ''}
+        </div>
       </div>`;
     });
   });
@@ -154,68 +146,7 @@ function renderSeriesPage(seriesId) {
   };
 }
 
-// Démarrer un épisode
-function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
-  saveProgressOnExit(); // Sauvegarde avant de changer d'épisode
-  const series = catalog.series.find(s => s.id === seriesId);
-  const season = series.seasons.find(se => se.season === seasonNumber);
-  const episode = season.episodes.find(e => e.episode === episodeNumber);
-
-  openPlayer(series, season, episode, startTime);
-
-  localStorage.setItem('progress_' + seriesId, JSON.stringify({
-    season: seasonNumber,
-    episode: episodeNumber,
-    time: startTime
-  }));
-
-  player.setAttribute('data-series', seriesId);
-  player.setAttribute('data-season', seasonNumber);
-  player.setAttribute('data-episode', episodeNumber);
-}
-
-// Lecture vidéo + progression + prochain épisode
-function openPlayer(series, season, episode, startTime = 0) {
-  modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
-  player.src = episode.src;
-  playerModal.classList.add('open');
-
-  // On attend le 'loadedmetadata' pour placer le temps exact
-  player.onloadedmetadata = () => {
-    player.currentTime = startTime || 0;
-    player.play();
-  };
-  // Si déjà chargé, place directement
-  if (player.readyState > 0) {
-    player.currentTime = startTime || 0;
-    player.play();
-  }
-
-  ensureBackBtn();
-
-  // Sauvegarde à chaque changement de temps
-  player.ontimeupdate = () => {
-    saveProgress();
-  };
-  // Sauvegarde aussi sur pause
-  player.onpause = () => {
-    saveProgress();
-  };
-
-  // Lecture auto de l'épisode suivant
-  player.onended = () => {
-    saveProgress(true); // Fin de l'épisode
-    const next = findNextEpisode(series, season.season, episode.episode);
-    if (next) {
-      setTimeout(() => startEpisode(series.id, next.season, next.episode, 0), 800);
-    } else {
-      playerModal.classList.remove('open');
-      alert("Bravo, vous avez terminé la série !");
-    }
-  };
-}
-
-// Sauvegarde la progression actuelle (saison, épisode, minute)
+// Sauvegarde la progression pour l'épisode courant
 function saveProgress(isEnd = false) {
   const seriesId = player.getAttribute('data-series');
   const season = Number(player.getAttribute('data-season'));
@@ -234,34 +165,83 @@ function saveProgress(isEnd = false) {
   }
 }
 
-// Sauvegarde en quittant le player
+// Supprime la progression de l'ancien épisode si tu passes au suivant
+function clearProgress(seriesId, seasonNumber, episodeNumber) {
+  const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
+  if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
+    localStorage.removeItem('progress_' + seriesId);
+  }
+}
+
+// Démarrer un épisode
+function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
+  clearProgress(seriesId, seasonNumber, episodeNumber); // Efface la progression si épisode/saison changés
+  const series = catalog.series.find(s => s.id === seriesId);
+  const season = series.seasons.find(se => se.season === seasonNumber);
+  const episode = season.episodes.find(e => e.episode === episodeNumber);
+
+  openPlayer(series, season, episode, startTime);
+
+  localStorage.setItem('progress_' + seriesId, JSON.stringify({
+    season: seasonNumber,
+    episode: episodeNumber,
+    time: startTime
+  }));
+
+  player.setAttribute('data-series', seriesId);
+  player.setAttribute('data-season', seasonNumber);
+  player.setAttribute('data-episode', episodeNumber);
+}
+
+function openPlayer(series, season, episode, startTime = 0) {
+  modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
+  player.src = episode.src;
+  playerModal.classList.add('open');
+
+  player.onloadedmetadata = () => {
+    player.currentTime = startTime || 0;
+    player.play();
+  };
+  if (player.readyState > 0) {
+    player.currentTime = startTime || 0;
+    player.play();
+  }
+
+  ensureBackBtn();
+
+  player.ontimeupdate = () => { saveProgress(); };
+  player.onpause = () => { saveProgress(); };
+  player.onended = () => {
+    saveProgress(true);
+    const next = findNextEpisode(series, season.season, episode.episode);
+    if (next) {
+      startEpisode(series.id, next.season, next.episode, 0);
+    } else {
+      playerModal.classList.remove('open');
+      alert("Bravo, vous avez terminé la série !");
+    }
+  };
+}
+
 function saveProgressOnExit() {
   if (!playerModal.classList.contains('open')) return;
   saveProgress();
 }
 
-// Trouve l'épisode suivant
 function findNextEpisode(series, seasonNumber, episodeNumber) {
   const season = series.seasons.find(se => se.season === seasonNumber);
   const epIndex = season.episodes.findIndex(e => e.episode === episodeNumber);
   if (epIndex < season.episodes.length - 1) {
-    return {
-      season: seasonNumber,
-      episode: season.episodes[epIndex + 1].episode
-    };
+    return { season: seasonNumber, episode: season.episodes[epIndex + 1].episode };
   }
   const seasonIdx = series.seasons.findIndex(se => se.season === seasonNumber);
   if (seasonIdx < series.seasons.length - 1) {
     const nextSeason = series.seasons[seasonIdx + 1];
-    return {
-      season: nextSeason.season,
-      episode: nextSeason.episodes[0].episode
-    };
+    return { season: nextSeason.season, episode: nextSeason.episodes[0].episode };
   }
   return null;
 }
 
-// Fermeture du lecteur
 closeBtn.onclick = () => {
   saveProgressOnExit();
   player.pause();
