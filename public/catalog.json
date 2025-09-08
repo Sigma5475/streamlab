@@ -143,6 +143,7 @@
             { "episode": 20, "title": "Au-delà du Temps", "src": "https://cinetacos.xyz/series/Flash/S05/Flash-S05-E20.mp4" },
             { "episode": 21, "title": "Cicada contre Flash", "src": "https://cinetacos.xyz/series/Flash/S05/Flash-S05-E21.mp4" },
             { "episode": 22, "title": "Fin de Partie", "src": "https://cinetacos.xyz/series/Flash/S05/Flash-S05-E22.mp4" }
+          ]
         },
         {
           "season": 6,
@@ -235,6 +236,15 @@
           ]
         }
       ]
+    },
+    {
+      "id": "jurassic-world-renaissance",
+      "title": "Jurassic World : Renaissance",
+      "description": "Une équipe d'extraction se rend sur une île isolée pour prélever l'ADN de trois dinosaures géants, clé d'un traitement médical révolutionnaire.",
+      "image": "https://www.cinebonus.fr/images/ff/700/jurassic-world-rebirth-1263c1f128.jpg",
+      "video": {
+        "src": "https://cinetacos.xyz/movies/Jurassic-World-Renaissance.mp4",
+      }
     }
   ]
 }
