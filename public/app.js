@@ -1,11 +1,11 @@
 // Sélecteurs principaux
 const seriesContainer = document.getElementById('seriesContainer');
+const moviesContainer = document.getElementById('moviesContainer');
 const searchInput = document.getElementById('search');
 const modalTitle = document.getElementById('modalTitle');
 const playerModal = document.getElementById('playerModal');
 const player = document.getElementById('player');
 const closeBtn = document.getElementById('closeBtn');
-
 const mainHeader = document.getElementById('mainHeader');
 
 let backBtn;
@@ -27,10 +27,9 @@ function ensureBackBtn() {
   }
 }
 
-// Catalogue séries + films
 let catalog = { series: [], movies: [] };
 
-// Navigation SPA
+// SPA navigation
 function navigateTo(hash) {
   window.location.hash = hash;
   renderPage();
@@ -53,20 +52,13 @@ function renderPage() {
   }
 }
 
-// Affiche le catalogue séries + films
+// Affiche les grilles séparées séries & films
 function renderCatalog(data) {
   seriesContainer.innerHTML = '';
-
-  const hasSeries = data.series && data.series.length > 0;
-  const hasMovies = data.movies && data.movies.length > 0;
-
-  if (!hasSeries && !hasMovies) {
-    seriesContainer.innerHTML = '<div>Aucune série ou film trouvé.</div>';
-    return;
-  }
+  moviesContainer.innerHTML = '';
 
   // Séries
-  if (hasSeries) {
+  if (data.series && data.series.length > 0) {
     data.series.forEach(series => {
       const card = document.createElement('div');
       card.className = 'card serie-card';
@@ -104,13 +96,15 @@ function renderCatalog(data) {
 
       seriesContainer.appendChild(card);
     });
+  } else {
+    seriesContainer.innerHTML = '<div>Aucune série trouvée.</div>';
   }
 
-  // FILMS
-  if (hasMovies) {
+  // Films
+  if (data.movies && data.movies.length > 0) {
     data.movies.forEach(movie => {
       const card = document.createElement('div');
-      card.className = 'card serie-card';
+      card.className = 'card movie-card';
       card.style.cursor = 'pointer';
 
       if (movie.image) {
@@ -133,7 +127,7 @@ function renderCatalog(data) {
         card.appendChild(desc);
       }
 
-      // Bouton Lecture directe
+      // Bouton Lecture
       const btn = document.createElement('button');
       btn.className = 'btn';
       btn.textContent = "Lecture";
@@ -143,8 +137,10 @@ function renderCatalog(data) {
       };
       card.appendChild(btn);
 
-      seriesContainer.appendChild(card);
+      moviesContainer.appendChild(card);
     });
+  } else {
+    moviesContainer.innerHTML = '<div>Aucun film trouvé.</div>';
   }
 }
 
@@ -341,7 +337,7 @@ function openMoviePlayer(movie) {
   player.play();
 }
 
-// Recherche sur titres/descriptions séries ET films
+// Recherche séries + films
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.toLowerCase();
   if (!q) {
@@ -371,6 +367,7 @@ function loadCatalog() {
     })
     .catch(err => {
       seriesContainer.innerHTML = "<div>Erreur de chargement du catalogue.</div>";
+      moviesContainer.innerHTML = "<div>Erreur de chargement du catalogue.</div>";
       console.error("Erreur chargement catalogue:", err);
     });
 }
