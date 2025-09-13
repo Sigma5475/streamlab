@@ -1,8 +1,14 @@
+/* --- RESET --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   background: #181818;
   color: #f0f0f0;
   font-family: 'Segoe UI', Arial, sans-serif;
-  margin: 0;
   min-height: 100vh;
 }
 
@@ -36,6 +42,7 @@ header#mainHeader input[type="text"] {
   box-shadow: 0 1px 4px #0003;
 }
 
+/* --- MAIN LAYOUT --- */
 main {
   padding: 40px 0 0 0;
   display: flex;
@@ -58,6 +65,7 @@ section {
   letter-spacing: 0.5px;
 }
 
+/* --- GRIDS --- */
 #seriesContainer,
 #moviesContainer {
   display: grid;
@@ -66,6 +74,7 @@ section {
   width: 100%;
 }
 
+/* --- CARDS --- */
 .card.serie-card,
 .card.movie-card {
   background: #232323;
@@ -106,6 +115,7 @@ section {
   margin-bottom: 10px;
 }
 
+/* --- BUTTONS --- */
 .btn {
   padding: 9px 16px;
   border-radius: 7px;
@@ -118,6 +128,7 @@ section {
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
   box-shadow: 0 1px 4px #0003;
+  outline: none;
 }
 
 .btn:hover,
@@ -141,6 +152,7 @@ section {
   color: #232323;
 }
 
+/* --- SERIES PAGE --- */
 .serie-info img {
   display: block;
   margin: 0 auto 10px auto;
@@ -148,6 +160,17 @@ section {
   max-height: 240px;
 }
 
+.serie-info h2 {
+  color: #ffe600;
+  margin-bottom: 8px;
+}
+
+.serie-info p {
+  margin-bottom: 18px;
+  color: #eee;
+}
+
+/* --- EPISODE LIST --- */
 .episode-list {
   margin-top: 16px;
 }
@@ -169,6 +192,7 @@ section {
   font-weight: 500;
 }
 
+/* --- MODAL --- */
 .modal {
   display: none;
   position: fixed;
@@ -211,12 +235,14 @@ section {
   margin-bottom: 0;
   padding: 0 8px;
   transition: color .12s;
+  outline: none;
 }
 
 .close:hover {
   color: #ffd000;
 }
 
+/* --- VIDEO PLAYER --- */
 video#player {
   border-radius: 12px;
   background: #000;
@@ -227,7 +253,7 @@ video#player {
   display: block;
 }
 
-/* Responsive mobile */
+/* --- RESPONSIVE MOBILE --- */
 @media (max-width: 700px) {
   header#mainHeader {
     flex-direction: column;
