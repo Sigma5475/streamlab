@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>StreamLab Catalogue</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Lien vers le CSS principal -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,14 +23,16 @@
     </section>
   </main>
 
+  <!-- Modale vidéo -->
   <div id="playerModal" class="modal">
     <div class="modal-head">
       <span id="modalTitle"></span>
-      <button id="closeBtn" class="close">&times;</button>
+      <button id="closeBtn" class="close" title="Fermer la vidéo">&times;</button>
     </div>
     <video id="player" controls style="width:100%;max-width:800px;margin:20px auto;display:block;"></video>
   </div>
 
+  <!-- Script JS principal -->
   <script src="app.js"></script>
 </body>
 </html>
