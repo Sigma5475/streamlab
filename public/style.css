@@ -112,6 +112,10 @@ section {
   text-align: center;
 }
 
+.meta {
+  display: none;
+}
+
 /* --- BUTTONS --- */
 .btn {
   padding: 9px 16px;
