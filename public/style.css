@@ -116,6 +116,14 @@ section {
   display: none;
 }
 
+.now-playing {
+  display: block;
+  font-size: .85em;
+  color: #bbb;
+  text-align: center;
+  margin-top: 4px;
+}
+
 /* --- BUTTONS --- */
 .btn {
   padding: 9px 16px;
