@@ -1,292 +1,177 @@
-/* --- RESET --- */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* --- Styles généraux --- */
 body {
-  background: #181818;
-  color: #f0f0f0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  min-height: 100vh;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #121212;
+  color: #fff;
 }
 
 header#mainHeader {
-  background: #232323;
-  padding: 18px 32px 12px 32px;
-  box-shadow: 0 2px 8px #0003;
+  background-color: #1f1f1f;
+  padding: 15px 20px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 30px;
-  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-header#mainHeader h1 {
-  font-size: 2.1em;
-  margin: 0 15px 0 0;
-  font-weight: 700;
-  color: #ffe600;
-  letter-spacing: 1px;
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #ff3c00;
 }
 
-header#mainHeader input[type="text"] {
-  padding: 10px 15px;
-  border-radius: 8px;
+header input {
+  padding: 8px 12px;
+  border-radius: 5px;
   border: none;
-  font-size: 1em;
-  width: 250px;
-  background: #292929;
-  color: #fff;
-  margin-left: auto;
-  box-shadow: 0 1px 4px #0003;
+  outline: none;
+  font-size: 1rem;
 }
 
-/* --- MAIN LAYOUT --- */
-main {
-  padding: 40px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100vw;
-}
-
-section {
-  width: 96vw;
-  max-width: 1200px;
-  margin-bottom: 32px;
-}
-
-.section-title {
-  font-size: 1.6em;
-  font-weight: 700;
-  color: #ffe600;
-  margin: 38px 0 22px 13px;
-  letter-spacing: 0.5px;
-}
-
-/* --- GRIDS --- */
-#seriesContainer,
-#moviesContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px;
-  width: 100%;
-}
-
-/* --- CARDS --- */
-.card.serie-card,
-.card.movie-card {
-  background: #232323;
-  border-radius: 14px;
-  box-shadow: 0 3px 14px #0004;
-  padding: 14px;
-  transition: transform .1s, box-shadow .2s;
+/* --- Catalogue --- */
+.card {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* centrer le contenu */
-  width: 180px;   /* largeur fixe proche d’un poster */
-  min-height: 320px; /* hauteur minimale */
-}
-
-.card.serie-card:hover,
-.card.movie-card:hover {
-  transform: translateY(-4px) scale(1.04);
-  box-shadow: 0 10px 24px #0009;
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 150px;
+  text-align: center;
+  display: inline-block;
+  vertical-align: top;
 }
 
 .card img {
-  margin-bottom: 10px;
-  border-radius: 12px;
   width: 100%;
-  height: 270px; /* hauteur type poster vertical */
+  height: 220px;
   object-fit: cover;
 }
 
-.title {
-  font-size: 1em;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #ffe600;
-  text-align: center;
+.card .title {
+  padding: 8px;
+  font-weight: bold;
+  font-size: 0.95rem;
 }
 
-.meta {
-  display: none;
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(255, 60, 0, 0.5);
 }
 
 .now-playing {
-  display: block;
-  font-size: .85em;
-  color: #bbb;
-  text-align: center;
-  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #ff3c00;
+  margin-bottom: 5px;
 }
 
-/* --- BUTTONS --- */
-.btn {
-  padding: 9px 16px;
-  border-radius: 7px;
-  border: none;
-  background: #ffe600;
-  color: #232323;
-  font-weight: 600;
-  font-size: 1em;
-  margin-top: 8px;
-  cursor: pointer;
-  transition: background 0.1s, color 0.1s;
-  box-shadow: 0 1px 4px #0003;
-  outline: none;
+/* --- Sections --- */
+.section-title {
+  margin: 20px 10px 10px;
+  font-size: 1.4rem;
+  border-bottom: 2px solid #ff3c00;
+  display: inline-block;
 }
 
-.btn:hover,
-.btn:focus {
-  background: #ffd000;
-  color: #232323;
+/* --- Page série / film --- */
+.series-detail, .movie-detail {
+  padding: 20px;
 }
 
 .back-btn {
-  background: #292929;
-  color: #ffe600;
-  margin-bottom: 18px;
-  margin-right: 18px;
-  padding: 7px 16px;
-  font-size: 1em;
-  border: 2px solid #ffe600;
+  background-color: #ff3c00;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 15px;
 }
 
 .back-btn:hover {
-  background: #ffe600;
-  color: #232323;
+  background-color: #ff5c30;
 }
 
-/* --- SERIES PAGE --- */
-.serie-info img {
+.series-image, .movie-image {
+  width: 100%;
+  max-width: 500px;
   display: block;
-  margin: 0 auto 10px auto;
-  max-width: 95vw;
-  max-height: 240px;
+  margin-bottom: 15px;
+  border-radius: 8px;
 }
 
-.serie-info h2 {
-  color: #ffe600;
-  margin-bottom: 8px;
+.series-description, .movie-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  max-width: 700px;
 }
 
-.serie-info p {
-  margin-bottom: 18px;
-  color: #eee;
-}
-
-/* --- EPISODE LIST --- */
-.episode-list {
-  margin-top: 16px;
+/* --- Episodes --- */
+.season-block {
+  margin-bottom: 20px;
 }
 
 .episode-card {
-  background: #232323;
-  border-radius: 7px;
-  padding: 9px 14px 9px 12px;
-  margin-bottom: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 7px #0002;
+  margin: 5px 0;
 }
 
-.episode-card span {
-  font-size: 1em;
-  color: #ffe600;
-  font-weight: 500;
+.episode-btn {
+  background-color: #1f1f1f;
+  border: 1px solid #ff3c00;
+  color: #ff3c00;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  width: 100%;
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
 }
 
-/* --- MODAL --- */
+.episode-btn:hover {
+  background-color: #ff3c00;
+  color: #121212;
+}
+
+/* --- Lecture vidéo --- */
+video {
+  border-radius: 8px;
+  background-color: #000;
+}
+
+/* --- Modal vidéo (optionnel si tu veux le player modal) --- */
 .modal {
   display: none;
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(24,24,24,.96);
-  z-index: 100;
-  align-items: center;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.9);
   justify-content: center;
-  flex-direction: column;
-  padding-top: 60px;
-  transition: opacity .16s;
-}
-
-.modal.open {
-  display: flex;
-  opacity: 1;
+  align-items: center;
 }
 
 .modal-head {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 1.15em;
-  font-weight: 700;
-  color: #ffe600;
-  margin-bottom: 15px;
   justify-content: space-between;
-  width: 100%;
-  max-width: 800px;
+  padding: 10px 20px;
 }
 
 .close {
   background: none;
   border: none;
-  color: #ffe600;
-  font-size: 2em;
+  font-size: 2rem;
+  color: #ff3c00;
   cursor: pointer;
-  margin-left: auto;
-  margin-right: 8px;
-  margin-bottom: 0;
-  padding: 0 8px;
-  transition: color .12s;
-  outline: none;
 }
 
 .close:hover {
-  color: #ffd000;
-}
-
-/* --- VIDEO PLAYER --- */
-video#player {
-  border-radius: 12px;
-  background: #000;
-  box-shadow: 0 3px 12px #0006;
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-  display: block;
-}
-
-/* --- RESPONSIVE MOBILE --- */
-@media (max-width: 700px) {
-  header#mainHeader {
-    flex-direction: column;
-    gap: 14px;
-    padding: 14px 8px 13px 8px;
-  }
-  .section-title {
-    font-size: 1.2em;
-    margin-left: 2px;
-  }
-  section {
-    max-width: 98vw;
-    padding: 0 2vw;
-  }
-  #seriesContainer,
-  #moviesContainer {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-  .serie-info img {
-    max-width: 99vw;
-    max-height: 160px;
-  }
-  video#player {
-    max-width: 99vw;
-  }
+  color: #ff5c30;
 }
