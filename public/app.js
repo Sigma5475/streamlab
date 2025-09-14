@@ -11,8 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Affichage du catalogue ---
 function renderCatalog(data) {
-  const catalogue = document.getElementById("catalogue");
-  catalogue.innerHTML = "";
+  const seriesContainer = document.getElementById("seriesContainer");
+  const moviesContainer = document.getElementById("moviesContainer");
+
+  seriesContainer.innerHTML = "";
+  moviesContainer.innerHTML = "";
 
   // --- Séries ---
   if (data.series && Array.isArray(data.series)) {
@@ -46,7 +49,7 @@ function renderCatalog(data) {
         showSeries(series);
       });
 
-      catalogue.appendChild(card);
+      seriesContainer.appendChild(card);
     });
   }
 
@@ -71,7 +74,7 @@ function renderCatalog(data) {
         showMovie(movie);
       });
 
-      catalogue.appendChild(card);
+      moviesContainer.appendChild(card);
     });
   }
 }
@@ -86,7 +89,6 @@ function showSeries(series) {
     seasonBlock.className = "season-block";
     seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
-    // Bloc plus compact pour les épisodes
     const episodesDiv = document.createElement("div");
     episodesDiv.className = "episodes-container";
 
