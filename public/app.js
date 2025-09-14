@@ -1,364 +1,148 @@
-// Sélecteurs principaux
-const seriesContainer = document.getElementById('seriesContainer');
-const moviesContainer = document.getElementById('moviesContainer');
-const searchInput = document.getElementById('search');
-const modalTitle = document.getElementById('modalTitle');
-const playerModal = document.getElementById('playerModal');
-const player = document.getElementById('player');
-const closeBtn = document.getElementById('closeBtn');
-const mainHeader = document.getElementById('mainHeader');
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("catalogue.json")
+    .then((response) => response.json())
+    .then((data) => {
+      renderCatalog(data);
+    })
+    .catch((error) =>
+      console.error("Erreur de chargement du catalogue :", error)
+    );
+});
 
-let backBtn;
-function ensureBackBtn() {
-  if (!backBtn) {
-    backBtn = document.createElement('button');
-    backBtn.className = 'btn back-btn';
-    backBtn.textContent = 'Retour au menu';
-    backBtn.onclick = () => {
-      saveProgressOnExit();
-      playerModal.classList.remove('open');
-      player.pause();
-      player.src = '';
-      window.location.hash = '';
-      renderPage();
-    };
-    const modalHead = playerModal.querySelector('.modal-head') || playerModal;
-    modalHead.appendChild(backBtn);
-  }
-}
-
-let catalog = { series: [], movies: [] };
-
-// SPA navigation
-function navigateTo(hash) {
-  window.location.hash = hash;
-  renderPage();
-}
-
-function renderPage() {
-  const hash = window.location.hash;
-  if (mainHeader) {
-    if (hash.startsWith('#serie=')) {
-      mainHeader.style.display = 'none';
-    } else {
-      mainHeader.style.display = '';
-    }
-  }
-  if (hash.startsWith('#serie=')) {
-    const serieId = hash.replace('#serie=', '');
-    renderSeriesPage(serieId);
-  } else {
-    renderCatalog(catalog);
-  }
-}
-
-// Affiche les grilles séparées séries & films
+// --- Affichage du catalogue ---
 function renderCatalog(data) {
-  seriesContainer.innerHTML = '';
-  moviesContainer.innerHTML = '';
+  const catalogue = document.getElementById("catalogue");
+  catalogue.innerHTML = "";
 
-  // Séries
-  if (data.series && data.series.length > 0) {
-    data.series.forEach(series => {
-      const card = document.createElement('div');
-      card.className = 'card serie-card';
-      card.style.cursor = 'pointer';
+  // --- Séries ---
+  if (data.series && Array.isArray(data.series)) {
+    data.series.forEach((series) => {
+      const card = document.createElement("div");
+      card.className = "card serie-card";
 
-      if (series.image) {
-        const img = document.createElement('img');
-        img.src = series.image;
-        img.alt = series.title;
-        img.style = "width:100%;height:270px;object-fit:cover;border-radius:12px;margin-bottom:8px";
-        card.appendChild(img);
-      }
+      const img = document.createElement("img");
+      img.src = series.image;
+      img.alt = series.title;
 
-      const title = document.createElement('div');
-      title.className = 'title';
+      const title = document.createElement("div");
+      title.className = "title";
       title.textContent = series.title;
+
+      card.appendChild(img);
       card.appendChild(title);
 
       // Progression = épisode en cours
-      const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
+      const progress = JSON.parse(
+        localStorage.getItem("progress_" + series.id) || "{}"
+      );
       if (progress.episode) {
-        const progDiv = document.createElement('div');
-        progDiv.className = 'now-playing';
-        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} ${progress.time ? '(' + Math.floor(progress.time / 60) + ' min)' : ''}`;
+        const progDiv = document.createElement("div");
+        progDiv.className = "now-playing";
+        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} ${
+          progress.time ? "(" + Math.floor(progress.time / 60) + " min)" : ""
+        }`;
         card.appendChild(progDiv);
       }
 
-      card.onclick = () => navigateTo('#serie=' + series.id);
+      card.addEventListener("click", () => {
+        showSeries(series);
+      });
 
-      seriesContainer.appendChild(card);
+      catalogue.appendChild(card);
     });
-  } else {
-    seriesContainer.innerHTML = '<div>Aucune série trouvée.</div>';
   }
 
-  // Films
-  if (data.movies && data.movies.length > 0) {
-    data.movies.forEach(movie => {
-      const card = document.createElement('div');
-      card.className = 'card movie-card';
-      card.style.cursor = 'pointer';
+  // --- Films ---
+  if (data.movies && Array.isArray(data.movies)) {
+    data.movies.forEach((movie) => {
+      const card = document.createElement("div");
+      card.className = "card movie-card";
 
-      if (movie.image) {
-        const img = document.createElement('img');
-        img.src = movie.image;
-        img.alt = movie.title;
-        img.style = "width:100%;height:270px;object-fit:cover;border-radius:12px;margin-bottom:8px";
-        card.appendChild(img);
-      }
+      const img = document.createElement("img");
+      img.src = movie.image;
+      img.alt = movie.title;
 
-      const title = document.createElement('div');
-      title.className = 'title';
+      const title = document.createElement("div");
+      title.className = "title";
       title.textContent = movie.title;
+
+      card.appendChild(img);
       card.appendChild(title);
 
-      // Bouton Lecture
-      const btn = document.createElement('button');
-      btn.className = 'btn';
-      btn.textContent = "Lecture";
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        openMoviePlayer(movie);
-      };
-      card.appendChild(btn);
+      card.addEventListener("click", () => {
+        showMovie(movie);
+      });
 
-      moviesContainer.appendChild(card);
+      catalogue.appendChild(card);
     });
-  } else {
-    moviesContainer.innerHTML = '<div>Aucun film trouvé.</div>';
   }
 }
 
-// Affiche la page d'une série
-function renderSeriesPage(seriesId) {
-  const series = catalog.series.find(s => s.id === seriesId);
-  if (!series) {
-    seriesContainer.innerHTML = "<div>Série introuvable.</div>";
-    return;
-  }
-  const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
+// --- Affichage d’une série ---
+function showSeries(series) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <h2>${series.title}</h2>
+  `;
 
-  // Bouton retour au menu
-  const backBtnSerie = document.createElement('button');
-  backBtnSerie.className = 'btn back-btn';
-  backBtnSerie.textContent = 'Retour au menu';
-  backBtnSerie.onclick = () => {
-    window.location.hash = '';
-    renderPage();
-  };
+  series.seasons.forEach((season) => {
+    const seasonBlock = document.createElement("div");
+    seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
-  let html = `
-    <div class="serie-info">
-      ${series.image ? `<img src="${series.image}" alt="${series.title}" style="width:300px;border-radius:12px;margin-bottom:16px;">` : ''}
-      <h2>${series.title}</h2>
-      <p>${series.description || ''}</p>
-      <button id="btnContinue" class="btn" style="margin-bottom:14px">
-        ${progress.episode ? 'Continuer la lecture' : 'Commencer la série'}
-      </button>
-      <h3>Choisir un épisode :</h3>
-      <div class="episode-list" id="episodeList"></div>
-    </div>`;
-  seriesContainer.innerHTML = '';
-  seriesContainer.appendChild(backBtnSerie);
-  seriesContainer.insertAdjacentHTML('beforeend', html);
-
-  document.getElementById('btnContinue').onclick = () => {
-    if (progress.episode) {
-      startEpisode(series.id, progress.season, progress.episode, progress.time || 0);
-    } else {
-      const firstSeason = series.seasons[0];
-      const firstEpisode = firstSeason.episodes[0];
-      startEpisode(series.id, firstSeason.season, firstEpisode.episode, 0);
-    }
-  };
-
-  // Liste des épisodes
-  const episodeList = document.getElementById('episodeList');
-  series.seasons.forEach(season => {
-    const seasonHeader = document.createElement('div');
-    seasonHeader.className = 'meta';
-    seasonHeader.style = "font-weight:bold;color:var(--muted);margin-top:8px;";
-    seasonHeader.textContent = `Saison ${season.season}`;
-    episodeList.appendChild(seasonHeader);
-
-    season.episodes.forEach(ep => {
-      const episodeCard = document.createElement('div');
-      episodeCard.className = 'episode-card';
-
-      const infoSpan = document.createElement('span');
-      infoSpan.textContent = `S${season.season}E${ep.episode} - ${ep.title}`;
-      episodeCard.appendChild(infoSpan);
-
-      const btnGroup = document.createElement('div');
-
-      // Bouton Lecture
-      const lectureBtn = document.createElement('button');
-      lectureBtn.className = 'btn';
-      lectureBtn.textContent = 'Lecture';
-      lectureBtn.onclick = () => startEpisode(series.id, season.season, ep.episode, 0);
-      btnGroup.appendChild(lectureBtn);
-
-      // Bouton Reprendre si progression sur cet épisode
-      if (progress.episode === ep.episode && progress.season === season.season && progress.time > 0) {
-        const resumeBtn = document.createElement('button');
-        resumeBtn.className = 'btn';
-        resumeBtn.style = "margin-left:10px;background:#444;color:#fff;";
-        resumeBtn.textContent = `Reprendre à ${Math.floor(progress.time/60)} min`;
-        resumeBtn.onclick = () => startEpisode(series.id, season.season, ep.episode, progress.time);
-        btnGroup.appendChild(resumeBtn);
-      }
-
-      episodeCard.appendChild(btnGroup);
-      episodeList.appendChild(episodeCard);
+    season.episodes.forEach((episode) => {
+      const ep = document.createElement("div");
+      ep.classList.add("episode");
+      ep.innerHTML = `
+        <button>${episode.episode}. ${episode.title}</button>
+      `;
+      ep.querySelector("button").addEventListener("click", () => {
+        playVideo(episode.src);
+        saveProgress(series.id, season.season, episode.episode, 0);
+      });
+      seasonBlock.appendChild(ep);
     });
+
+    main.appendChild(seasonBlock);
   });
 }
 
-// Sauvegarde progression épisode courant
-function saveProgress(isEnd = false) {
-  const seriesId = player.getAttribute('data-series');
-  const season = Number(player.getAttribute('data-season'));
-  const episode = Number(player.getAttribute('data-episode'));
-  let time = player.currentTime;
-  if (isEnd) time = 0;
-  if (seriesId && season && episode) {
-    localStorage.setItem('progress_' + seriesId, JSON.stringify({
-      season,
-      episode,
-      time
-    }));
-  }
+// --- Affichage d’un film ---
+function showMovie(movie) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <h2>${movie.title}</h2>
+    <button id="playMovie">▶️ Lire le film</button>
+  `;
+
+  document.getElementById("playMovie").addEventListener("click", () => {
+    playVideo(movie.src);
+  });
 }
 
-function clearProgress(seriesId, seasonNumber, episodeNumber) {
-  const progress = JSON.parse(localStorage.getItem('progress_' + seriesId) || '{}');
-  if (progress.season !== seasonNumber || progress.episode !== episodeNumber) {
-    localStorage.removeItem('progress_' + seriesId);
-  }
-}
+// --- Lecture vidéo ---
+function playVideo(src) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <video controls autoplay width="100%">
+      <source src="${src}" type="video/mp4">
+      Votre navigateur ne supporte pas la lecture vidéo.
+    </video>
+  `;
 
-// Démarre un épisode
-function startEpisode(seriesId, seasonNumber, episodeNumber, startTime = 0) {
-  clearProgress(seriesId, seasonNumber, episodeNumber);
-  const series = catalog.series.find(s => s.id === seriesId);
-  const season = series.seasons.find(se => se.season === seasonNumber);
-  const episode = season.episodes.find(e => e.episode === episodeNumber);
-
-  openPlayer(series, season, episode, startTime);
-
-  localStorage.setItem('progress_' + seriesId, JSON.stringify({
-    season: seasonNumber,
-    episode: episodeNumber,
-    time: startTime
-  }));
-
-  player.setAttribute('data-series', seriesId);
-  player.setAttribute('data-season', seasonNumber);
-  player.setAttribute('data-episode', episodeNumber);
-}
-
-function openPlayer(series, season, episode, startTime = 0) {
-  modalTitle.textContent = `${series.title} S${season.season}E${episode.episode} - ${episode.title}`;
-  player.src = episode.src;
-  playerModal.classList.add('open');
-
-  player.onloadedmetadata = () => {
-    player.currentTime = startTime || 0;
-    player.play();
-  };
-  if (player.readyState > 0) {
-    player.currentTime = startTime || 0;
-    player.play();
-  }
-
-  ensureBackBtn();
-
-  player.ontimeupdate = () => { saveProgress(); };
-  player.onpause = () => { saveProgress(); };
-  player.onended = () => {
-    saveProgress(true);
-    const next = findNextEpisode(series, season.season, episode.episode);
-    if (next) {
-      startEpisode(series.id, next.season, next.episode, 0);
-    } else {
-      playerModal.classList.remove('open');
-      alert("Bravo, vous avez terminé la série !");
+  const video = main.querySelector("video");
+  video.addEventListener("timeupdate", () => {
+    const currentTime = video.currentTime;
+    const lastSeries = localStorage.getItem("lastSeries");
+    if (lastSeries) {
+      const { id, season, episode } = JSON.parse(lastSeries);
+      saveProgress(id, season, episode, currentTime);
     }
-  };
+  });
 }
 
-function saveProgressOnExit() {
-  if (!playerModal.classList.contains('open')) return;
-  saveProgress();
+// --- Sauvegarde progression ---
+function saveProgress(id, season, episode, time) {
+  const progress = { season, episode, time };
+  localStorage.setItem("progress_" + id, JSON.stringify(progress));
+  localStorage.setItem("lastSeries", JSON.stringify({ id, season, episode }));
 }
-
-function findNextEpisode(series, seasonNumber, episodeNumber) {
-  const season = series.seasons.find(se => se.season === seasonNumber);
-  const epIndex = season.episodes.findIndex(e => e.episode === episodeNumber);
-  if (epIndex < season.episodes.length - 1) {
-    return { season: seasonNumber, episode: season.episodes[epIndex + 1].episode };
-  }
-  const seasonIdx = series.seasons.findIndex(se => se.season === seasonNumber);
-  if (seasonIdx < series.seasons.length - 1) {
-    const nextSeason = series.seasons[seasonIdx + 1];
-    return { season: nextSeason.season, episode: nextSeason.episodes[0].episode };
-  }
-  return null;
-}
-
-closeBtn.onclick = () => {
-  saveProgressOnExit();
-  player.pause();
-  playerModal.classList.remove('open');
-  player.src = '';
-};
-
-// Lecture directe pour les films
-function openMoviePlayer(movie) {
-  modalTitle.textContent = movie.title;
-  player.src = movie.src;
-  playerModal.classList.add('open');
-  player.currentTime = 0;
-  player.play();
-}
-
-// Recherche séries + films
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.toLowerCase();
-  if (!q) {
-    renderCatalog(catalog);
-    return;
-  }
-  const filtered = {
-    series: (catalog.series || []).filter(s =>
-      s.title.toLowerCase().includes(q) ||
-      (s.seasons && s.seasons.some(se => se.episodes.some(ep => ep.title.toLowerCase().includes(q))))
-    ),
-    movies: (catalog.movies || []).filter(m =>
-      m.title.toLowerCase().includes(q)
-    )
-  };
-  renderCatalog(filtered);
-});
-
-function loadCatalog() {
-  fetch('/catalog.json')
-    .then(res => res.json())
-    .then(data => {
-      catalog = data;
-      renderPage();
-    })
-    .catch(err => {
-      seriesContainer.innerHTML = "<div>Erreur de chargement du catalogue.</div>";
-      moviesContainer.innerHTML = "<div>Erreur de chargement du catalogue.</div>";
-      console.error("Erreur chargement catalogue:", err);
-    });
-}
-
-window.addEventListener('hashchange', renderPage);
-
-loadCatalog();
-
-window.startEpisode = startEpisode;
