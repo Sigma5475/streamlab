@@ -81,19 +81,38 @@ function renderCatalog(data) {
   }
 }
 
-// --- Affichage d’une série ---
+// --- Affichage d’une série complète ---
 function showSeries(series) {
   const main = document.querySelector("main");
-  main.innerHTML = `<h2>${series.title}</h2>`;
+  main.innerHTML = `
+    <div class="series-detail">
+      <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+      <h2>${series.title}</h2>
+      <img src="${series.image}" alt="${series.title}" class="series-image">
+      <p class="series-description">${series.description || ""}</p>
+      <div id="episodesContainer"></div>
+    </div>
+  `;
+
+  document.getElementById("backBtn").addEventListener("click", () => {
+    fetch("/catalog.json")
+      .then((response) => response.json())
+      .then((data) => renderCatalog(data));
+  });
+
+  const episodesContainer = document.getElementById("episodesContainer");
 
   series.seasons.forEach((season) => {
     const seasonBlock = document.createElement("div");
+    seasonBlock.className = "season-block";
     seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
     season.episodes.forEach((episode) => {
       const ep = document.createElement("div");
-      ep.classList.add("episode");
-      ep.innerHTML = `<button>${episode.episode}. ${episode.title}</button>`;
+      ep.className = "episode-card";
+      ep.innerHTML = `
+        <button class="episode-btn">${episode.episode}. ${episode.title}</button>
+      `;
       ep.querySelector("button").addEventListener("click", () => {
         playVideo(episode.src);
         saveProgress(series.id, season.season, episode.episode, 0);
@@ -101,7 +120,7 @@ function showSeries(series) {
       seasonBlock.appendChild(ep);
     });
 
-    main.appendChild(seasonBlock);
+    episodesContainer.appendChild(seasonBlock);
   });
 }
 
@@ -109,9 +128,20 @@ function showSeries(series) {
 function showMovie(movie) {
   const main = document.querySelector("main");
   main.innerHTML = `
-    <h2>${movie.title}</h2>
-    <button id="playMovie">▶️ Lire le film</button>
+    <div class="movie-detail">
+      <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+      <h2>${movie.title}</h2>
+      <img src="${movie.image}" alt="${movie.title}" class="movie-image">
+      <p class="movie-description">${movie.description || ""}</p>
+      <button id="playMovie" class="play-btn">▶️ Lire le film</button>
+    </div>
   `;
+
+  document.getElementById("backBtn").addEventListener("click", () => {
+    fetch("/catalog.json")
+      .then((response) => response.json())
+      .then((data) => renderCatalog(data));
+  });
 
   document.getElementById("playMovie").addEventListener("click", () => {
     playVideo(movie.src);
