@@ -32,9 +32,7 @@ function renderCatalog(data) {
       card.appendChild(title);
 
       // Progression = épisode en cours
-      const progress = JSON.parse(
-        localStorage.getItem("progress_" + series.id) || "{}"
-      );
+      const progress = JSON.parse(localStorage.getItem("progress_" + series.id) || "{}");
       if (progress.episode) {
         const progDiv = document.createElement("div");
         progDiv.className = "now-playing";
@@ -81,27 +79,29 @@ function renderCatalog(data) {
 // --- Affichage d’une série ---
 function showSeries(series) {
   const main = document.querySelector("main");
-  main.innerHTML = `
-    <h2>${series.title}</h2>
-  `;
+  main.innerHTML = `<h2>${series.title}</h2>`;
 
   series.seasons.forEach((season) => {
     const seasonBlock = document.createElement("div");
+    seasonBlock.className = "season-block";
     seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
+    // Bloc plus compact pour les épisodes
+    const episodesDiv = document.createElement("div");
+    episodesDiv.className = "episodes-container";
+
     season.episodes.forEach((episode) => {
-      const ep = document.createElement("div");
-      ep.classList.add("episode");
-      ep.innerHTML = `
-        <button>${episode.episode}. ${episode.title}</button>
-      `;
-      ep.querySelector("button").addEventListener("click", () => {
+      const epButton = document.createElement("button");
+      epButton.className = "episode-btn";
+      epButton.textContent = `${episode.episode}. ${episode.title}`;
+      epButton.addEventListener("click", () => {
         playVideo(episode.src);
         saveProgress(series.id, season.season, episode.episode, 0);
       });
-      seasonBlock.appendChild(ep);
+      episodesDiv.appendChild(epButton);
     });
 
+    seasonBlock.appendChild(episodesDiv);
     main.appendChild(seasonBlock);
   });
 }
