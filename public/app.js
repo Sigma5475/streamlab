@@ -68,7 +68,7 @@ function renderCatalog(data) {
         const img = document.createElement('img');
         img.src = series.image;
         img.alt = series.title;
-        img.style = "width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px";
+        img.style = "width:100%;height:270px;object-fit:cover;border-radius:12px;margin-bottom:8px";
         card.appendChild(img);
       }
 
@@ -77,18 +77,12 @@ function renderCatalog(data) {
       title.textContent = series.title;
       card.appendChild(title);
 
-      if (series.description) {
-        const desc = document.createElement('div');
-        desc.className = 'meta';
-        desc.textContent = series.description.slice(0, 80) + (series.description.length > 80 ? '...' : '');
-        card.appendChild(desc);
-      }
-
+      // Progression = épisode en cours
       const progress = JSON.parse(localStorage.getItem('progress_' + series.id) || '{}');
       if (progress.episode) {
         const progDiv = document.createElement('div');
-        progDiv.className = 'meta';
-        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} (${progress.time ? Math.floor(progress.time / 60) + ' min' : ''})`;
+        progDiv.className = 'now-playing';
+        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} ${progress.time ? '(' + Math.floor(progress.time / 60) + ' min)' : ''}`;
         card.appendChild(progDiv);
       }
 
@@ -111,7 +105,7 @@ function renderCatalog(data) {
         const img = document.createElement('img');
         img.src = movie.image;
         img.alt = movie.title;
-        img.style = "width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:8px";
+        img.style = "width:100%;height:270px;object-fit:cover;border-radius:12px;margin-bottom:8px";
         card.appendChild(img);
       }
 
@@ -119,13 +113,6 @@ function renderCatalog(data) {
       title.className = 'title';
       title.textContent = movie.title;
       card.appendChild(title);
-
-      if (movie.description) {
-        const desc = document.createElement('div');
-        desc.className = 'meta';
-        desc.textContent = movie.description.slice(0, 80) + (movie.description.length > 80 ? '...' : '');
-        card.appendChild(desc);
-      }
 
       // Bouton Lecture
       const btn = document.createElement('button');
@@ -347,12 +334,10 @@ searchInput.addEventListener('input', () => {
   const filtered = {
     series: (catalog.series || []).filter(s =>
       s.title.toLowerCase().includes(q) ||
-      (s.description && s.description.toLowerCase().includes(q)) ||
-      s.seasons.some(se => se.episodes.some(ep => ep.title.toLowerCase().includes(q)))
+      (s.seasons && s.seasons.some(se => se.episodes.some(ep => ep.title.toLowerCase().includes(q))))
     ),
     movies: (catalog.movies || []).filter(m =>
-      m.title.toLowerCase().includes(q) ||
-      (m.description && m.description.toLowerCase().includes(q))
+      m.title.toLowerCase().includes(q)
     )
   };
   renderCatalog(filtered);
