@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("catalog.json")
     .then((response) => response.json())
     .then((data) => {
-      window.catalogData = data; // on garde les données globalement
       renderCatalog(data);
     })
     .catch((error) =>
@@ -12,20 +11,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Affichage du catalogue ---
 function renderCatalog(data) {
-  const main = document.querySelector("main");
-  main.innerHTML = `
-    <section>
-      <h2 class="section-title">Séries</h2>
-      <div id="seriesContainer"></div>
-    </section>
-    <section>
-      <h2 class="section-title">Films</h2>
-      <div id="moviesContainer"></div>
-    </section>
-  `;
-
   const seriesContainer = document.getElementById("seriesContainer");
   const moviesContainer = document.getElementById("moviesContainer");
+
+  seriesContainer.innerHTML = "";
+  moviesContainer.innerHTML = "";
+
+  const header = document.getElementById("mainHeader");
+  header.style.display = "flex"; // Réaffiche le header
 
   // --- Séries ---
   if (data.series && Array.isArray(data.series)) {
@@ -81,95 +74,88 @@ function renderCatalog(data) {
 // --- Affichage d’une série ---
 function showSeries(series) {
   const main = document.querySelector("main");
+  const header = document.getElementById("mainHeader");
+  header.style.display = "none"; // Masque le header
+
   main.innerHTML = `
-    <div class="series-detail">
-      <button class="back-btn">← Retour au catalogue</button>
-      <h2>${series.title}</h2>
-      <img src="${series.image}" alt="${series.title}" class="series-image">
-      <p class="series-description">${series.description || "Pas de description disponible."}</p>
-      <div id="seasonsContainer"></div>
+    <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+    <div class="series-info">
+      <img src="${series.image}" alt="${series.title}" class="series-img">
+      <div class="series-desc">
+        <h2>${series.title}</h2>
+        <p>${series.description}</p>
+      </div>
     </div>
+    <div id="episodesContainer"></div>
   `;
 
-  const seasonsContainer = document.getElementById("seasonsContainer");
+  document.getElementById("backBtn").addEventListener("click", () => {
+    renderCatalog(JSON.parse(localStorage.getItem("catalogData")));
+  });
+
+  // Stocke le catalogue pour revenir facilement
+  localStorage.setItem("catalogData", JSON.stringify({
+    series: JSON.parse(localStorage.getItem("catalogData"))?.series || [],
+    movies: JSON.parse(localStorage.getItem("catalogData"))?.movies || []
+  }));
+
+  const episodesContainer = document.getElementById("episodesContainer");
 
   series.seasons.forEach((season) => {
     const seasonBlock = document.createElement("div");
     seasonBlock.className = "season-block";
     seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
-    season.episodes.forEach((episode) => {
+    season.episodes.forEach((epArr) => {
+      const [num, title, src] = epArr;
       const epDiv = document.createElement("div");
-      epDiv.className = "episode-card";
-      const epBtn = document.createElement("button");
-      epBtn.className = "episode-btn";
-      epBtn.textContent = `${episode.episode}. ${episode.title}`;
-      epBtn.addEventListener("click", () => {
-        playVideo(episode.src);
-        saveProgress(series.id, season.season, episode.episode, 0);
+      epDiv.className = "episode";
+
+      const btn = document.createElement("button");
+      btn.textContent = `${num}. ${title}`;
+      btn.addEventListener("click", () => {
+        openPlayer(src, series.title + " - S" + season.season + "E" + num);
       });
-      epDiv.appendChild(epBtn);
+
+      epDiv.appendChild(btn);
       seasonBlock.appendChild(epDiv);
     });
 
-    seasonsContainer.appendChild(seasonBlock);
-  });
-
-  // Bouton retour
-  const backBtn = main.querySelector(".back-btn");
-  backBtn.addEventListener("click", () => {
-    renderCatalog(window.catalogData);
+    episodesContainer.appendChild(seasonBlock);
   });
 }
 
 // --- Affichage d’un film ---
 function showMovie(movie) {
-  const main = document.querySelector("main");
-  main.innerHTML = `
-    <div class="movie-detail">
-      <button class="back-btn">← Retour au catalogue</button>
-      <h2>${movie.title}</h2>
-      <img src="${movie.image}" alt="${movie.title}" class="movie-image">
-      <p class="movie-description">${movie.description || "Pas de description disponible."}</p>
-      <button id="playMovie" class="episode-btn">▶️ Lire le film</button>
-    </div>
-  `;
+  const header = document.getElementById("mainHeader");
+  header.style.display = "none"; // Masque le header
 
-  document.getElementById("playMovie").addEventListener("click", () => {
-    playVideo(movie.src);
-  });
-
-  // Bouton retour
-  const backBtn = main.querySelector(".back-btn");
-  backBtn.addEventListener("click", () => {
-    renderCatalog(window.catalogData);
-  });
+  openPlayer(movie.src, movie.title);
 }
 
-// --- Lecture vidéo ---
-function playVideo(src) {
-  const main = document.querySelector("main");
-  main.innerHTML = `
-    <video controls autoplay width="100%">
-      <source src="${src}" type="video/mp4">
-      Votre navigateur ne supporte pas la lecture vidéo.
-    </video>
-  `;
+// --- Modale vidéo stylée ---
+function openPlayer(src, title) {
+  const modal = document.getElementById("playerModal");
+  const player = document.getElementById("player");
+  const modalTitle = document.getElementById("modalTitle");
 
-  const video = main.querySelector("video");
-  video.addEventListener("timeupdate", () => {
-    const currentTime = video.currentTime;
-    const lastSeries = localStorage.getItem("lastSeries");
-    if (lastSeries) {
-      const { id, season, episode } = JSON.parse(lastSeries);
-      saveProgress(id, season, episode, currentTime);
-    }
-  });
+  modalTitle.textContent = title;
+  player.src = src;
+
+  modal.style.display = "block";
+  player.play();
+
+  document.getElementById("closeBtn").onclick = () => {
+    player.pause();
+    modal.style.display = "none";
+  };
 }
 
-// --- Sauvegarde progression ---
-function saveProgress(id, season, episode, time) {
-  const progress = { season, episode, time };
-  localStorage.setItem("progress_" + id, JSON.stringify(progress));
-  localStorage.setItem("lastSeries", JSON.stringify({ id, season, episode }));
-}
+// --- Ferme la modale si clic à l’extérieur ---
+window.onclick = function(event) {
+  const modal = document.getElementById("playerModal");
+  if (event.target == modal) {
+    document.getElementById("player").pause();
+    modal.style.display = "none";
+  }
+};
