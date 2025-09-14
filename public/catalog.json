@@ -236,6 +236,25 @@
       ]
     }
   ],
+      "id": "mercredi",
+      "title": "Mercredi",
+      "description": "Barry Allen devient le super-héros le plus rapide du monde.",
+      "image": "https://www.ecranlarge.com/content/uploads/2023/06/hrta0iq8keqbdopsnki2gumowk-571.jpg",
+      "seasons": [
+        {
+          "season": 1,
+          "episodes": [
+            { "episode": 1, "title": "Un malheureux nouveau départ", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E01.mp4" },
+            { "episode": 2, "title": "Un moindre malheur ?", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E02.mp4" },
+            { "episode": 3, "title": "Tous les malheurs sont dans la nature", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E03.mp4" },
+            { "episode": 4, "title": "Un malheur fou", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E04.mp4" },
+            { "episode": 5, "title": "Quand le malheur vous rattrape", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E05.mp4" },
+            { "episode": 6, "title": "Chacun son malheur", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E06.mp4" },
+            { "episode": 7, "title": "L'argent ne fait pas le malheur", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E07.mp4" },
+            { "episode": 8, "title": "Malheur aux vaincus !", "src": "https://cinetacos.xyz/series/Mercredi/S01/Mercredi-S01-E08.mp4" }
+      ]
+    }
+  ],
             "films": [
                 {
                     "id": "jurassic-world-renaissance",
