@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("/catalog.json")
+  fetch("catalog.json")
     .then((response) => response.json())
     .then((data) => {
+      window.catalogData = data; // on garde les données globalement
       renderCatalog(data);
     })
     .catch((error) =>
@@ -11,11 +12,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Affichage du catalogue ---
 function renderCatalog(data) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <section>
+      <h2 class="section-title">Séries</h2>
+      <div id="seriesContainer"></div>
+    </section>
+    <section>
+      <h2 class="section-title">Films</h2>
+      <div id="moviesContainer"></div>
+    </section>
+  `;
+
   const seriesContainer = document.getElementById("seriesContainer");
   const moviesContainer = document.getElementById("moviesContainer");
-
-  seriesContainer.innerHTML = "";
-  moviesContainer.innerHTML = "";
 
   // --- Séries ---
   if (data.series && Array.isArray(data.series)) {
@@ -33,19 +43,6 @@ function renderCatalog(data) {
 
       card.appendChild(img);
       card.appendChild(title);
-
-      // Progression = épisode en cours
-      const progress = JSON.parse(
-        localStorage.getItem("progress_" + series.id) || "{}"
-      );
-      if (progress.episode) {
-        const progDiv = document.createElement("div");
-        progDiv.className = "now-playing";
-        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} ${
-          progress.time ? "(" + Math.floor(progress.time / 60) + " min)" : ""
-        }`;
-        card.appendChild(progDiv);
-      }
 
       card.addEventListener("click", () => {
         showSeries(series);
@@ -81,26 +78,20 @@ function renderCatalog(data) {
   }
 }
 
-// --- Affichage d’une série complète ---
+// --- Affichage d’une série ---
 function showSeries(series) {
   const main = document.querySelector("main");
   main.innerHTML = `
     <div class="series-detail">
-      <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+      <button class="back-btn">← Retour au catalogue</button>
       <h2>${series.title}</h2>
       <img src="${series.image}" alt="${series.title}" class="series-image">
-      <p class="series-description">${series.description || ""}</p>
-      <div id="episodesContainer"></div>
+      <p class="series-description">${series.description || "Pas de description disponible."}</p>
+      <div id="seasonsContainer"></div>
     </div>
   `;
 
-  document.getElementById("backBtn").addEventListener("click", () => {
-    fetch("/catalog.json")
-      .then((response) => response.json())
-      .then((data) => renderCatalog(data));
-  });
-
-  const episodesContainer = document.getElementById("episodesContainer");
+  const seasonsContainer = document.getElementById("seasonsContainer");
 
   series.seasons.forEach((season) => {
     const seasonBlock = document.createElement("div");
@@ -108,19 +99,26 @@ function showSeries(series) {
     seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
 
     season.episodes.forEach((episode) => {
-      const ep = document.createElement("div");
-      ep.className = "episode-card";
-      ep.innerHTML = `
-        <button class="episode-btn">${episode.episode}. ${episode.title}</button>
-      `;
-      ep.querySelector("button").addEventListener("click", () => {
+      const epDiv = document.createElement("div");
+      epDiv.className = "episode-card";
+      const epBtn = document.createElement("button");
+      epBtn.className = "episode-btn";
+      epBtn.textContent = `${episode.episode}. ${episode.title}`;
+      epBtn.addEventListener("click", () => {
         playVideo(episode.src);
         saveProgress(series.id, season.season, episode.episode, 0);
       });
-      seasonBlock.appendChild(ep);
+      epDiv.appendChild(epBtn);
+      seasonBlock.appendChild(epDiv);
     });
 
-    episodesContainer.appendChild(seasonBlock);
+    seasonsContainer.appendChild(seasonBlock);
+  });
+
+  // Bouton retour
+  const backBtn = main.querySelector(".back-btn");
+  backBtn.addEventListener("click", () => {
+    renderCatalog(window.catalogData);
   });
 }
 
@@ -129,22 +127,22 @@ function showMovie(movie) {
   const main = document.querySelector("main");
   main.innerHTML = `
     <div class="movie-detail">
-      <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+      <button class="back-btn">← Retour au catalogue</button>
       <h2>${movie.title}</h2>
       <img src="${movie.image}" alt="${movie.title}" class="movie-image">
-      <p class="movie-description">${movie.description || ""}</p>
-      <button id="playMovie" class="play-btn">▶️ Lire le film</button>
+      <p class="movie-description">${movie.description || "Pas de description disponible."}</p>
+      <button id="playMovie" class="episode-btn">▶️ Lire le film</button>
     </div>
   `;
 
-  document.getElementById("backBtn").addEventListener("click", () => {
-    fetch("/catalog.json")
-      .then((response) => response.json())
-      .then((data) => renderCatalog(data));
-  });
-
   document.getElementById("playMovie").addEventListener("click", () => {
     playVideo(movie.src);
+  });
+
+  // Bouton retour
+  const backBtn = main.querySelector(".back-btn");
+  backBtn.addEventListener("click", () => {
+    renderCatalog(window.catalogData);
   });
 }
 
