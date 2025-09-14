@@ -1,151 +1,148 @@
-import React, { useEffect, useState } from "react";
-import catalogueData from "./catalogue.json";
-import "./App.css";
-
-function App() {
-  const [catalogue, setCatalogue] = useState({ series: [], movies: [] });
-  const [currentMain, setCurrentMain] = useState(null); // Série ou Film affichée
-  const [currentVideo, setCurrentVideo] = useState(null); // Src vidéo en cours
-
-  // --- Charger le catalogue ---
-  useEffect(() => {
-    setCatalogue(catalogueData);
-  }, []);
-
-  // --- Sauvegarder progression ---
-  const saveProgress = (id, season, episode, time) => {
-    const progress = { season, episode, time };
-    localStorage.setItem("progress_" + id, JSON.stringify(progress));
-    localStorage.setItem(
-      "lastSeries",
-      JSON.stringify({ id, season, episode })
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("catalogue.json")
+    .then((response) => response.json())
+    .then((data) => {
+      renderCatalog(data);
+    })
+    .catch((error) =>
+      console.error("Erreur de chargement du catalogue :", error)
     );
-  };
+});
 
-  // --- Lecture vidéo ---
-  const playVideo = (src, seriesInfo) => {
-    setCurrentVideo({ src, seriesInfo });
-    if (seriesInfo) {
-      saveProgress(
-        seriesInfo.id,
-        seriesInfo.season,
-        seriesInfo.episode,
-        0
+// --- Affichage du catalogue ---
+function renderCatalog(data) {
+  const catalogue = document.getElementById("catalogue");
+  catalogue.innerHTML = "";
+
+  // --- Séries ---
+  if (data.series && Array.isArray(data.series)) {
+    data.series.forEach((series) => {
+      const card = document.createElement("div");
+      card.className = "card serie-card";
+
+      const img = document.createElement("img");
+      img.src = series.image;
+      img.alt = series.title;
+
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = series.title;
+
+      card.appendChild(img);
+      card.appendChild(title);
+
+      // Progression = épisode en cours
+      const progress = JSON.parse(
+        localStorage.getItem("progress_" + series.id) || "{}"
       );
-    }
-  };
+      if (progress.episode) {
+        const progDiv = document.createElement("div");
+        progDiv.className = "now-playing";
+        progDiv.textContent = `En cours : S${progress.season}E${progress.episode} ${
+          progress.time ? "(" + Math.floor(progress.time / 60) + " min)" : ""
+        }`;
+        card.appendChild(progDiv);
+      }
 
-  // --- Affichage d’une série ---
-  const showSeries = (series) => {
-    setCurrentMain(
-      <div>
-        <h2>{series.title}</h2>
-        {series.seasons.map((season) => (
-          <div key={season.season}>
-            <h3>Saison {season.season}</h3>
-            {season.episodes.map((ep) => (
-              <div key={ep.episode} className="episode">
-                <button
-                  onClick={() =>
-                    playVideo(ep.src, {
-                      id: series.id,
-                      season: season.season,
-                      episode: ep.episode,
-                    })
-                  }
-                >
-                  {ep.episode}. {ep.title}
-                </button>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
+      card.addEventListener("click", () => {
+        showSeries(series);
+      });
 
-  // --- Affichage d’un film ---
-  const showMovie = (movie) => {
-    setCurrentMain(
-      <div>
-        <h2>{movie.title}</h2>
-        <button onClick={() => playVideo(movie.src, null)}>▶️ Lire le film</button>
-      </div>
-    );
-  };
+      catalogue.appendChild(card);
+    });
+  }
 
-  // --- Affichage du catalogue ---
-  return (
-    <div className="app">
-      <h1>Catalogue</h1>
-      <div id="catalogue">
-        {/* Séries */}
-        <h2>Séries</h2>
-        <div className="series-list">
-          {catalogue.series.map((series) => {
-            const progress = JSON.parse(
-              localStorage.getItem("progress_" + series.id) || "{}"
-            );
-            return (
-              <div
-                key={series.id}
-                className="card serie-card"
-                onClick={() => showSeries(series)}
-              >
-                <img src={series.image} alt={series.title} width="150" />
-                <div className="title">{series.title}</div>
-                {progress.episode && (
-                  <div className="now-playing">
-                    En cours : S{progress.season}E{progress.episode}{" "}
-                    {progress.time ? `(${Math.floor(progress.time / 60)} min)` : ""}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+  // --- Films ---
+  if (data.movies && Array.isArray(data.movies)) {
+    data.movies.forEach((movie) => {
+      const card = document.createElement("div");
+      card.className = "card movie-card";
 
-        {/* Films */}
-        <h2>Films</h2>
-        <div className="movies-list">
-          {catalogue.movies.map((movie) => (
-            <div
-              key={movie.id}
-              className="card movie-card"
-              onClick={() => showMovie(movie)}
-            >
-              <img src={movie.image} alt={movie.title} width="150" />
-              <div className="title">{movie.title}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      const img = document.createElement("img");
+      img.src = movie.image;
+      img.alt = movie.title;
 
-      {/* Section principale */}
-      <main>
-        {currentMain}
-        {currentVideo && (
-          <div className="video-player">
-            <video
-              controls
-              autoPlay
-              width="100%"
-              onTimeUpdate={(e) => {
-                const currentTime = e.target.currentTime;
-                if (currentVideo.seriesInfo) {
-                  const { id, season, episode } = currentVideo.seriesInfo;
-                  saveProgress(id, season, episode, currentTime);
-                }
-              }}
-            >
-              <source src={currentVideo.src} type="video/mp4" />
-              Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = movie.title;
+
+      card.appendChild(img);
+      card.appendChild(title);
+
+      card.addEventListener("click", () => {
+        showMovie(movie);
+      });
+
+      catalogue.appendChild(card);
+    });
+  }
 }
 
-export default App;
+// --- Affichage d’une série ---
+function showSeries(series) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <h2>${series.title}</h2>
+  `;
+
+  series.seasons.forEach((season) => {
+    const seasonBlock = document.createElement("div");
+    seasonBlock.innerHTML = `<h3>Saison ${season.season}</h3>`;
+
+    season.episodes.forEach((episode) => {
+      const ep = document.createElement("div");
+      ep.classList.add("episode");
+      ep.innerHTML = `
+        <button>${episode.episode}. ${episode.title}</button>
+      `;
+      ep.querySelector("button").addEventListener("click", () => {
+        playVideo(episode.src);
+        saveProgress(series.id, season.season, episode.episode, 0);
+      });
+      seasonBlock.appendChild(ep);
+    });
+
+    main.appendChild(seasonBlock);
+  });
+}
+
+// --- Affichage d’un film ---
+function showMovie(movie) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <h2>${movie.title}</h2>
+    <button id="playMovie">▶️ Lire le film</button>
+  `;
+
+  document.getElementById("playMovie").addEventListener("click", () => {
+    playVideo(movie.src);
+  });
+}
+
+// --- Lecture vidéo ---
+function playVideo(src) {
+  const main = document.querySelector("main");
+  main.innerHTML = `
+    <video controls autoplay width="100%">
+      <source src="${src}" type="video/mp4">
+      Votre navigateur ne supporte pas la lecture vidéo.
+    </video>
+  `;
+
+  const video = main.querySelector("video");
+  video.addEventListener("timeupdate", () => {
+    const currentTime = video.currentTime;
+    const lastSeries = localStorage.getItem("lastSeries");
+    if (lastSeries) {
+      const { id, season, episode } = JSON.parse(lastSeries);
+      saveProgress(id, season, episode, currentTime);
+    }
+  });
+}
+
+// --- Sauvegarde progression ---
+function saveProgress(id, season, episode, time) {
+  const progress = { season, episode, time };
+  localStorage.setItem("progress_" + id, JSON.stringify(progress));
+  localStorage.setItem("lastSeries", JSON.stringify({ id, season, episode }));
+}
