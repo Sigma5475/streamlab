@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("catalogue.json")
+  fetch("/catalogue.json")
     .then((response) => response.json())
     .then((data) => {
       renderCatalog(data);
