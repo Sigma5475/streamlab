@@ -259,14 +259,14 @@
       "title": "Inception",
       "image": "https://upload.wikimedia.org/wikipedia/en/7/7e/Inception_ver3.jpg",
       "description": "Un voleur infiltre les rêves pour dérober des secrets.",
-      "src": "https://www.example.com/videos/inception.mp4"
+      "src": "https://cinechicken.xyz/movies/Inception.mp4"
     },
     {
       "id": "interstellar",
       "title": "Interstellar",
       "image": "https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg",
       "description": "Un groupe d'explorateurs voyage à travers un trou de ver pour sauver l'humanité.",
-      "src": "https://www.example.com/videos/interstellar.mp4"
+      "src": "https://cinechicken.xyz/movies/Interstellar.mp4"
     }
   ]
 }
