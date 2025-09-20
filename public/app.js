@@ -1,6 +1,6 @@
 // app.js — Version complète avec "Commencer / Continuer" + player modal
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("/catalog.json")
+  fetch("catalog.json") // ⚠ en statique, on enlève le / au début
     .then((res) => res.json())
     .then((data) => {
       window.catalogData = data;
@@ -14,19 +14,30 @@ document.addEventListener("DOMContentLoaded", () => {
    RENDER CATALOG (Séries & Films)
    --------------------------- */
 function renderCatalog(data) {
-  const seriesContainer = document.getElementById("seriesContainer");
-  const moviesContainer = document.getElementById("moviesContainer");
+  const main = document.querySelector("main");
   const header = document.getElementById("mainHeader");
 
+  // On réinjecte la structure par défaut du catalogue
+  main.innerHTML = `
+    <section>
+      <h2 class="section-title">Séries</h2>
+      <div id="seriesContainer"></div>
+    </section>
+    <section>
+      <h2 class="section-title">Films</h2>
+      <div id="moviesContainer"></div>
+    </section>
+  `;
+
   if (header) header.style.display = "flex";
+
+  const seriesContainer = document.getElementById("seriesContainer");
+  const moviesContainer = document.getElementById("moviesContainer");
 
   if (!seriesContainer || !moviesContainer) {
     console.error("Conteneurs introuvables : seriesContainer ou moviesContainer.");
     return;
   }
-
-  seriesContainer.innerHTML = "";
-  moviesContainer.innerHTML = "";
 
   // Séries
   if (Array.isArray(data.series)) {
@@ -154,6 +165,37 @@ function showSeries(series) {
     seasonBlock.appendChild(epsWrapper);
     episodesContainer.appendChild(seasonBlock);
   });
+}
+
+/* ---------------------------
+   SHOW MOVIE (fiche film)
+   --------------------------- */
+function showMovie(movie) {
+  const main = document.querySelector("main");
+  const header = document.getElementById("mainHeader");
+  if (header) header.style.display = "none";
+
+  main.innerHTML = `
+    <div class="movie-detail">
+      <button id="backBtn" class="back-btn">⬅ Retour au catalogue</button>
+      <div class="movie-top">
+        <img src="${movie.image}" alt="${movie.title}" class="movie-img">
+        <div class="movie-meta">
+          <h2>${movie.title}</h2>
+          <p class="movie-description">${movie.description || "Pas de description."}</p>
+          <button id="btnPlayMovie" class="play-btn">Regarder le film</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("backBtn").addEventListener("click", () => {
+    renderCatalog(window.catalogData);
+  });
+
+  document.getElementById("btnPlayMovie").onclick = () => {
+    openPlayer(movie.src, movie.title);
+  };
 }
 
 /* ---------------------------
